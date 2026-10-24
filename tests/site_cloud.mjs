@@ -155,8 +155,9 @@ async function verifyContourModeSwitch(page, label) {
   const control = page.locator('#contour-mode');
   assert.equal(await control.isDisabled(), false, `${label}: a completed prediction enables the spread selector.`);
   assert.deepEqual(await control.locator('option').evaluateAll(nodes => nodes.map(node => ({ value: node.value, label: node.textContent.trim() }))), [
-    { value: 'total', label: '總不確定性' }, { value: 'epistemic', label: '多次預測中心的變動' },
+    { value: 'total', label: 'Total uncertainty' }, { value: 'epistemic', label: 'Prediction center variation' },
   ]);
+  assert.doesNotMatch(await page.locator('body').textContent(), /\p{Script=Han}/u, `${label}: site-authored interface text remains English after prediction.`);
   const snapshot = () => page.evaluate(() => ({
     points: [...document.querySelectorAll('.coordinate-fields input')].map(node => node.value),
     alpha: document.getElementById('alpha-value').textContent, beta: document.getElementById('beta-value').textContent,

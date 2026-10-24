@@ -25,7 +25,10 @@ try {
   assert.equal(await page.locator('.paper-header').evaluate(node => getComputedStyle(node).textAlign), 'center', 'Paper header follows the centered reference-demo layout.');
   assert.equal(await page.locator('#contour-mode').inputValue(), 'total');
   assert.equal(await page.locator('#contour-mode').isDisabled(), true, 'Contour selection requires a genuine completed prediction.');
-  assert.deepEqual(await page.locator('#contour-mode option').allTextContents(), ['總不確定性', '多次預測中心的變動']);
+  assert.deepEqual(await page.locator('#contour-mode option').allTextContents(), ['Total uncertainty', 'Prediction center variation']);
+  assert.doesNotMatch(await page.locator('body').textContent(), /\p{Script=Han}/u, 'Site-authored interface text must remain English.');
+  const accessibilityText = await page.locator('[aria-label], [title]').evaluateAll(nodes => nodes.map(node => `${node.getAttribute('aria-label') || ''} ${node.getAttribute('title') || ''}`).join(' '));
+  assert.doesNotMatch(accessibilityText, /\p{Script=Han}/u, 'Accessible interface labels must remain English.');
   assert.ok(await page.locator('#canvas-wrap').evaluate(node => node.getBoundingClientRect().width <= 720), 'A single image remains bounded rather than filling an entire large screen.');
   assert.ok((await page.locator('#image-note').textContent()).includes('not model predictions'));
   await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
