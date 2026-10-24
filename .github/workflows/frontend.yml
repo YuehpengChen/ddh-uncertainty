@@ -1,0 +1,48 @@
+name: Frontend and pure geometry checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '*.html'
+      - '*.css'
+      - '*.mjs'
+      - 'tests/**'
+      - 'validation/**'
+      - '.github/workflows/frontend.yml'
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+      - name: Check pure geometry and preprocessing arithmetic
+        run: |
+          node --test validation/geometry.test.mjs validation/resize_pillow_unit.test.mjs
+          node --check app.mjs
+          node --check inference-worker.mjs
+      - name: Install browser test runner
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Stage explanatory frontend without model files
+        run: |
+          mkdir -p _site/models _site/validation
+          cp index.html style.css app.mjs geometry.mjs inference-worker.mjs _site/
+          cp validation/resize_pillow.mjs _site/validation/
+          cp tests/pending_manifest.json _site/models/manifest.json
+          python -m http.server 8000 --directory _site > /tmp/ddh-frontend-server.log 2>&1 &
+      - name: Check responsive UI without neural inference
+        run: node tests/frontend_smoke.mjs http://127.0.0.1:8000/ frontend-qa
+      - name: Preserve responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frontend-ui-proof
+          path: frontend-qa/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "scope": "Hosted CI and visitor-browser neural-model validation; no local author-machine model inference",
+  "status": "requirements_only_not_a_validation_result",
+  "fixture_policy": "Synthetic RGB pixel patterns only; no patient images, names, rater coordinates or per-case predictions",
+  "local_allowed": ["Read source", "Hash files", "Run synthetic geometry/statistics JavaScript tests"],
+  "hosted_required": [
+    {
+      "id": "provenance",
+      "requirement": "Record source/checkpoint/ONNX SHA-256, actual input and output tensor shapes, normalization-buffer lineage, export/runtime versions and release URL. Fail if weights are missing or a placeholder is substituted."
+    },
+    {
+      "id": "preprocess",
+      "requirement": "Test RGB channel order, [0,1] scaling, ImageNet normalization, NCHW shape, 448x448 resize and EXIF orientation on synthetic nonsquare RGB fixtures. Separate pixel-resize differences from network differences."
+    },
+    {
+      "id": "deterministic_parity",
+      "requirement": "On hosted CI, compare dropout-disabled PyTorch and ONNX outputs with identical preprocessed synthetic tensors. Inspect ten means, ten log variances/variances and original-pixel angles. Report observed maximum errors, not only a pass label.",
+      "suggested_initial_gates_not_established_validation_tolerances": {"normalized_mean_absolute_max": 0.0002, "log_variance_absolute_max": 0.002, "angle_difference_degrees_max": 0.1},
+      "note": "These engineering gates must be evaluated against measured backend differences; they are not clinical error bounds."
+    },
+    {
+      "id": "normalization_frozen",
+      "requirement": "Verify that all BatchNorm nodes use fixed checkpoint or explicitly identified training-re-estimated buffers, dropout runs do not change buffers, and input order does not change deterministic outputs. Do not use global model.train() for export."
+    },
+    {
+      "id": "mc_dropout_preserved",
+      "requirement": "Inspect ONNX graph for preserved stochastic operations including internal attention dropout; confirm repeated same-input inference produces nonidentical coordinate means and nonzero between-pass covariance. Fixed attention dropout plus variable explicit dropout is not full replay parity."
+    },
+    {
+      "id": "mc_sample_alignment",
+      "requirement": "Retain all ten means and conditional variances from each common pass. Verify T-denominator covariance, within+between decomposition, original-coordinate scaling and P4 uncertainty. Quantiles must use a shared mixture component per joint draw."
+    },
+    {
+      "id": "runtime_providers",
+      "requirement": "Smoke-test actual WASM and WebGPU providers on hosted browser runners where available. If a provider cannot execute stochastic nodes, disable that provider for MC mode or explicitly label deterministic/conditional-only output; do not fabricate repeated-pass variation."
+    },
+    {
+      "id": "finite_outputs",
+      "requirement": "Require finite tensors and nonnegative variances; reject segment lengths <=1e-6 original-image pixels. Report invalid sample count and branch-boundary proximity. Do not silently clip coordinates into the image."
+    },
+    {
+      "id": "resource_and_network",
+      "requirement": "Measure hosted-browser cold model download, warm inference, 50-pass time and memory on synthetic fixtures. Verify cancellation/disposal and no localhost, author-machine or image-upload requests. Avoid interpreting hosted measurements as visitor performance guarantees."
+    },
+    {
+      "id": "public_artifacts",
+      "requirement": "Check deployed model asset HTTP status, byte count, hash, CORS, static-site route/base path and release-page URL. A deployed frontend without usable model files is not completed browser inference."
+    }
+  ]
+}

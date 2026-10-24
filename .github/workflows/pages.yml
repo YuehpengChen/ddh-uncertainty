@@ -1,0 +1,91 @@
+name: Verify and deploy browser-only research demo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ddh-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+      - name: Verify geometry and preprocessing arithmetic
+        run: |
+          node --test validation/geometry.test.mjs
+          node --test validation/resize_pillow_unit.test.mjs
+      - name: Download validated inference bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download browser-v1 --pattern browser-model-bundle.tar.gz --dir _bundle
+          mkdir -p _site
+          tar -xzf _bundle/browser-model-bundle.tar.gz -C _site
+          cp index.html style.css app.mjs geometry.mjs inference-worker.mjs _site/
+          mkdir -p _site/validation
+          cp validation/resize_pillow.mjs _site/validation/
+      - name: Install cloud browser test runner
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Full UI and real inference check on cloud browser
+        run: node tests/site_cloud.mjs _site site-qa
+      - name: Preserve browser proof and screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pre-deploy-browser-proof
+          path: site-qa/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
+      - name: Upload verified static site
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+  verify-live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+      - name: Install cloud browser test runner
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise deployed website with real browser inference
+        env:
+          SITE_URL: ${{ needs.deploy.outputs.url }}
+        run: node tests/site_cloud.mjs
+      - name: Preserve live browser proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: deployed-browser-proof
+          path: site-qa/
+          if-no-files-found: ignore
+          retention-days: 14

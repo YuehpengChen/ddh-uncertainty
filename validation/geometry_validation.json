@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "completed_at_utc": "2026-10-24T03:14:27Z",
+  "execution_scope": "Synthetic-coordinate JavaScript only; no model imported, no neural inference, no patient data",
+  "tests": 15,
+  "passed": 15,
+  "failed": 0,
+  "command": "node --test validation/geometry.test.mjs",
+  "sha256": {
+    "geometry.mjs": "0205e2e22662c993783f553ed47d6333a599e31bc27f4fc3ebe1a7189680608f",
+    "validation/geometry.test.mjs": "4782c7b16d9c176a8bb28f10490e2a4265912bfc5ca43b9b983217b188abb25d",
+    "validation/reference.mjs": "f3d7ea04986fd2fc253b8bb72fc04133c53d33306391e8676e2e5d8d09d4ae46"
+  },
+  "verified": [
+    "Exact P1-P2 baseline / P4-P3 alpha / P4-P5 beta angle geometry",
+    "Shared translation, rotation and isotropic scale invariance",
+    "Original pixel geometry restoration for non-square images",
+    "Obtuse angle retention and P4 effect on both angles",
+    "Explicit handling of degenerate and nonfinite coordinates",
+    "Linear-interpolated quantiles",
+    "T-denominator mixture covariance and signed off-diagonal entries",
+    "One-pass conditional versus between-pass spread distinction",
+    "Five-point Jacobian by independent centered finite differences",
+    "Shared-translation cancellation with full covariance",
+    "Shared mixture pass for every coordinate in each joint sample",
+    "Matched Gaussian covariance comparison with common random numbers",
+    "Cholesky reconstruction and invalid covariance rejection",
+    "Sampling-count input guards",
+    "P4 marginal covariance contour"
+  ],
+  "not_verified_by_this_report": [
+    "PyTorch or ONNX model outputs",
+    "Browser neural-model compatibility or performance",
+    "Canvas versus PIL preprocessing equivalence",
+    "Clinical accuracy, calibration or external validation"
+  ]
+}

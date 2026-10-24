@@ -1,2 +1,49 @@
-# ddh-uncertainty
-Browser-only landmark and Graf-angle uncertainty research demonstration. No image-upload server.
+# DDH landmark and angle uncertainty
+
+A browser-only research demonstration accompanying **Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound**.
+
+Website: https://yuehpengchen.github.io/ddh-uncertainty/
+
+## What visitors can do
+
+- Open a PNG, JPEG or WebP image in their own browser.
+- Explicitly download the inference model and predict five landmarks.
+- Run 10, 20 or 50 genuine stochastic passes; 50 matches the study's inference setting.
+- Inspect the angle at the mean landmarks, marginal coordinate contours, and nominal central 90% angle intervals.
+- Compare a joint Gaussian with its diagonal-covariance counterpart while preserving the coordinate means and variances.
+- Drag landmarks to explore geometry without rerunning the model.
+- Download the two inference graphs and inspect the published validation reports.
+
+The initial illustration and its landmarks are synthetic and are explicitly labeled as explanatory material. They are not a patient case or an AI prediction.
+
+## Computation and privacy
+
+```
+GitHub Pages -- website + model files --> visitor browser
+local image  -- decoded RGB -----------> browser worker
+browser CPU  -- landmarks + intervals -> display
+```
+
+There is no image-upload endpoint, remote inference API, analytics service, or connection to the author's computer. Loading the page does not run the model. GitHub receives ordinary requests for website and model assets, not the selected image. Use de-identified images and follow your institution's data policies.
+
+The application uses ONNX Runtime Web, one-thread WASM CPU execution, and same-origin runtime files. It does not require WebGPU. Model downloads can be large; first-load time and performance depend on the visitor's device.
+
+## Scientific interpretation
+
+P1–P2 defines the baseline; P4–P3 defines the bony roof; P4–P5 defines the cartilage roof. The unsigned segment angles retain the full 0–180° range. Predictions are restored to original-image pixel coordinates before calculating angles.
+
+For T stochastic passes, the application averages the predicted diagonal conditional variance and adds the full covariance of the pass means, using denominator T. The mixture sampler chooses one shared pass for all ten coordinates in each of 4,096 draws. The controlled covariance comparison uses two Gaussians with identical means and diagonal variances and shared standard-normal samples. The finite mixture is displayed separately.
+
+The backbone runs once per image. Dropout remains active in the prediction head, including attention probability dropout. Batch-normalization buffers remain fixed at the evaluated train-only statistics. The archived Stage 2 checkpoint omits the dropout probability; the export reconstructs 0.3 from the archived source and discloses this limitation in the model manifest.
+
+This is an internal-validation research model, not a diagnostic device. Nominal intervals do not establish coverage for a new patient. The demo does not validate the acquisition plane, establish diagnostic classification, or reproduce the study's aggregate performance on user-selected images. Manual landmark changes do not update the AI uncertainty distribution.
+
+## Reproducibility and deployment
+
+The original training checkpoints remain in a private build repository. GitHub-hosted CPU conversion checks strict parameter loading and deterministic parity with the source architecture. A separate hosted Chromium run checks the real WASM runtime, 50 distinct dropout predictions, finite variances, and fixed deterministic state after sampling. Only a passing inference bundle is released publicly.
+
+The public deployment workflow downloads the verified release bundle, runs pure geometry tests and full browser UI inference on GitHub-hosted runners, and deploys the static website to GitHub Pages. A final cloud browser check exercises the deployed URL. No neural-network inference or export is performed on the author's Mac or training host.
+
+Source files are divided into the website, `model/` (minimal export architecture), `cloud/` (cloud-only conversion and verification), `validation/` (geometry and preprocessing checks), and `tests/` (cloud browser checks). Model and runtime binaries are release assets rather than Git source files.
+
+Upstream software retains its own licenses. No patient images, annotation tables, training records, or full training checkpoints are distributed with this website.
