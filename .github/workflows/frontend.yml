@@ -23,6 +23,7 @@ jobs:
       - name: Check pure geometry and preprocessing arithmetic
         run: |
           node --test validation/geometry.test.mjs validation/resize_pillow_unit.test.mjs
+          node --test tests/edge_guards.test.mjs
           node --check app.mjs
           node --check inference-worker.mjs
       - name: Install browser test runner

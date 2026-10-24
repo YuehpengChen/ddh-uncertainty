@@ -3,6 +3,8 @@ package-lock.json
 _site/
 _bundle/
 site-qa/
+frontend_cloud_qa_*/
+release_bundle_*/
 validation/fixtures/
 __pycache__/
 *.onnx

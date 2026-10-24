@@ -36,6 +36,10 @@ For T stochastic passes, the application averages the predicted diagonal conditi
 
 The backbone runs once per image. Dropout remains active in the prediction head, including attention probability dropout. Batch-normalization buffers remain fixed at the evaluated train-only statistics. The archived Stage 2 checkpoint omits the dropout probability; the export reconstructs 0.3 from the archived source and discloses this limitation in the model manifest.
 
+Independent binary masks are generated afresh by the browser for all 26 dropout sites, with inverse keep-probability scaling inside the graph. Spatial channel masks retain singleton spatial dimensions. Native ONNX Dropout is not used because the initial runtime check found that its stochastic effect was removed.
+
+Decoded opaque RGB8 resizing and float32 normalization pass 13 synthetic Pillow-reference cases with exact equality. This proof does not establish equality of browser image decoding, color-profile handling, or EXIF orientation. Transparent images are rejected. Inputs are limited to 16 megapixels and 20 MB.
+
 This is an internal-validation research model, not a diagnostic device. Nominal intervals do not establish coverage for a new patient. The demo does not validate the acquisition plane, establish diagnostic classification, or reproduce the study's aggregate performance on user-selected images. Manual landmark changes do not update the AI uncertainty distribution.
 
 ## Reproducibility and deployment

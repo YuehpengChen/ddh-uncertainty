@@ -8,13 +8,14 @@ const notify = message => self.postMessage(message);
 function modelURL(value) {
   const resolved = new URL(value, baseURL);
   if (!['https:', 'http:'].includes(resolved.protocol)) throw new Error('Unsupported model URL.');
+  if (resolved.origin !== new URL(baseURL).origin || resolved.username || resolved.password) throw new Error('Model downloads must remain on this website’s origin.');
   return resolved.href;
 }
 
 async function verifiedModel(description, name) {
   if (!description?.url || !/^[a-f0-9]{64}$/i.test(description.sha256 || '')) throw new Error(`${name} has no valid integrity record.`);
   notify({ type: 'status', message: `Downloading ${name} weights…` });
-  const response = await fetch(modelURL(description.url));
+  const response = await fetch(modelURL(description.url), { redirect: 'error' });
   if (!response.ok) throw new Error(`${name} download failed (HTTP ${response.status}).`);
   const bytes = await response.arrayBuffer();
   if (description.bytes && bytes.byteLength !== description.bytes) throw new Error(`${name} size does not match the published model.`);
@@ -43,8 +44,9 @@ function validateManifest(value) {
 
 async function initialize(manifestURL) {
   const manifestLocation = new URL(manifestURL);
+  if (manifestLocation.origin !== self.location.origin) throw new Error('The model manifest must remain on this website’s origin.');
   baseURL = new URL('../', manifestLocation).href;
-  const response = await fetch(manifestLocation, { cache: 'no-store' });
+  const response = await fetch(manifestLocation, { cache: 'no-store', redirect: 'error' });
   if (!response.ok) throw new Error('The model manifest could not be loaded.');
   manifest = await response.json(); validateManifest(manifest);
   const runtimeURL = new URL(manifest.runtime.module, baseURL);
@@ -127,9 +129,20 @@ async function predict(message) {
     if (!variation) throw new Error('Repeated predictions were identical. Stochastic uncertainty is unavailable; no interval was substituted.');
     notify({ type: 'progress', id, completed: passes, total: passes, message: 'Sampling 4,096 joint configurations and angle intervals…' });
     const result = sampleAngleDistributions(means, variances, 4096);
+    requireCompleteAngleSamples(result);
     result.backend = 'wasm';
     notify({ type: 'result', id, result });
   } finally { input?.dispose?.(); dispose(features); running = false; }
+}
+
+function requireCompleteAngleSamples(result) {
+  if (!Number.isSafeInteger(result.samples) || result.samples <= 0) throw new Error('Angle intervals unavailable: no requested sample set.');
+  const counts = Object.entries(result.distributions).map(([name, distribution]) => ({
+    name, valid: Math.min(distribution.alpha.length, distribution.beta.length), degenerate: distribution.invalid,
+  }));
+  if (counts.some(row => row.degenerate !== 0 || row.valid !== result.samples)) {
+    throw new Error(`Angle intervals unavailable: ${counts.map(row => `${row.name}: ${row.valid} valid, ${row.degenerate} degenerate out of ${result.samples} draws`).join('; ')}. No intervals are reported from an incomplete sample set.`);
+  }
 }
 
 self.addEventListener('message', async event => {

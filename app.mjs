@@ -204,6 +204,10 @@ $('image-file').addEventListener('change', async event => {
 function cancelComputation(announce = true) {
   state.sequence++; state.worker?.terminate(); state.worker = null; state.busy = false; state.modelReady = false;
   $('progress-wrap').hidden = true; status('Computation stopped. Reload the model to continue.'); updateControls();
+  if (state.prediction) {
+    $('uncertainty-badge').textContent = `Previous completed result · ${state.prediction.passes} passes`;
+    $('image-note').textContent = 'The current computation was stopped. The previously completed model prediction remains displayed; no partial-run intervals are shown.';
+  }
   if (announce) say('Computation cancelled. No image has left this browser.');
 }
 
@@ -267,23 +271,32 @@ function renderUncertainty() {
   const tbody = $('interval-rows'); tbody.replaceChildren();
   for (const key of ['mixture', 'full', 'diagonal']) {
     const row = document.createElement('tr'), name = document.createElement('td'), swatch = document.createElement('span');
-    swatch.className = 'legend-swatch'; swatch.style.background = COLORS[key]; name.append(swatch, document.createTextNode(labels[key])); row.append(name);
+    swatch.className = 'legend-swatch'; swatch.style.background = COLORS[key]; name.append(swatch, document.createTextNode(labels[key]));
+    const distribution = prediction.distributions[key], counts = document.createElement('small');
+    counts.className = 'sample-count';
+    counts.textContent = `${Math.min(distribution.alpha.length, distribution.beta.length).toLocaleString()} valid · ${distribution.invalid.toLocaleString()} degenerate / ${prediction.samples.toLocaleString()} drawn`;
+    name.append(counts); row.append(name);
     for (const angle of ['alpha', 'beta']) { const cell = document.createElement('td'), bounds = prediction.distributions[key].intervals[angle]; cell.textContent = bounds ? `${bounds[0].toFixed(1)}° – ${bounds[1].toFixed(1)}°` : 'Undefined'; row.append(cell); }
     tbody.append(row);
   }
-  $('sampling-note').textContent = `${prediction.samples.toLocaleString()} joint configurations per distribution; 5th and 95th linearly interpolated percentiles. The dotted vertical line marks the angle at the mean model coordinates. The mixture selects one common dropout pass for all 10 coordinates. The two Gaussians use the same mean, coordinate variances and standard-normal draws; only cross-coordinate covariance changes. Mixture versus Gaussian also changes distributional shape. Intervals are nominal and uncalibrated. ${prediction.passes < 50 ? 'Fewer than the study’s 50 passes: exploratory setting. ' : ''}Units: original-image pixels and degrees.`;
+  $('sampling-note').textContent = `${prediction.samples.toLocaleString()} requested joint draws per distribution; valid and degenerate counts are listed for each row. The inference worker reports no intervals if any draw is degenerate. Bounds use 5th and 95th linearly interpolated percentiles. The dotted vertical line marks the angle at the mean model coordinates. The mixture selects one common dropout pass for all 10 coordinates. The two Gaussians use the same mean, coordinate variances and standard-normal draws; only cross-coordinate covariance changes. Mixture versus Gaussian also changes distributional shape. Intervals are nominal and uncalibrated. ${prediction.passes < 50 ? 'Fewer than the study’s 50 passes: exploratory setting. ' : ''}Units: original-image pixels and degrees.`;
   renderPlot();
 }
 
 function renderPlot() {
   if (!state.prediction) return;
   const svg = $('distribution-plot'), angle = state.displayAngle, ns = 'http://www.w3.org/2000/svg'; svg.replaceChildren();
-  const all = Object.values(state.prediction.distributions).flatMap(d => d[angle]);
+  const available = Object.entries(state.prediction.distributions).map(([name, distribution]) => ({ name, values: distribution[angle].filter(Number.isFinite) })).filter(row => row.values.length);
+  const all = available.flatMap(row => row.values);
+  if (!all.length) {
+    const text = document.createElementNS(ns, 'text'); text.setAttribute('x', '480'); text.setAttribute('y', '125'); text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-family', 'Arial'); text.setAttribute('font-size', '15'); text.setAttribute('fill', '#656a6d'); text.textContent = 'Angle distribution unavailable: no valid samples.'; svg.append(text);
+    return;
+  }
   const min = Math.max(0, Math.min(...all) - 2), max = Math.min(180, Math.max(...all) + 2), span = Math.max(max - min, 1);
   const left = 54, right = 930, top = 25, bottom = 195, bins = 64;
-  const histograms = Object.entries(state.prediction.distributions).map(([name, distribution]) => {
-    const counts = Array(bins).fill(0); for (const value of distribution[angle]) counts[Math.min(bins - 1, Math.max(0, Math.floor((value - min) / span * bins)))]++;
-    return { name, counts: counts.map(n => n / Math.max(1, distribution[angle].length) / (span / bins)) };
+  const histograms = available.map(({ name, values }) => {
+    const counts = Array(bins).fill(0); for (const value of values) counts[Math.min(bins - 1, Math.max(0, Math.floor((value - min) / span * bins)))]++;
+    return { name, counts: counts.map(n => n / values.length / (span / bins)) };
   });
   const peak = Math.max(...histograms.flatMap(h => h.counts), .01);
   const node = (tag, attrs, text) => { const el = document.createElementNS(ns, tag); for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value); if (text !== undefined) el.textContent = text; svg.append(el); return el; };

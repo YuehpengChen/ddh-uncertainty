@@ -104,6 +104,7 @@ try {
   const intervalText = await page.locator('#interval-rows tr').allTextContents();
   assert.equal(intervalText.length, 3);
   for (const row of intervalText) assert.ok(!/Undefined|NaN|Infinity/.test(row) && row.match(/°/g)?.length === 4, 'All three distributions expose finite alpha and beta intervals.');
+  for (const row of intervalText) assert.ok(row.includes('4,096 valid') && row.includes('0 degenerate / 4,096 drawn'), 'Every reported distribution has a complete, explicitly counted sample set.');
   assert.equal(await page.locator('#distribution-plot polyline').count(), 3);
   await page.locator('[data-angle="beta"]').click();
   assert.equal(await page.locator('[data-angle="beta"]').getAttribute('aria-pressed'), 'true');
@@ -124,6 +125,16 @@ try {
   await page.screenshot({ path: path.join(output, 'mobile-prediction.png'), fullPage: true });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'No horizontal overflow on a 390-pixel mobile viewport.');
+  // Cancel only after observing at least one actual model pass; never simulate progress.
+  await page.locator('#predict').click();
+  await page.waitForFunction(() => !document.getElementById('progress-wrap').hidden && document.getElementById('inference-progress').value >= 1);
+  const completedBeforeCancellation = await page.locator('#inference-progress').evaluate(node => node.value);
+  await page.locator('#cancel-predict').click();
+  assert.equal(await page.locator('#predict').isDisabled(), true, 'Cancelling terminates and unloads the worker.');
+  assert.equal(await page.locator('#load-model').isDisabled(), false, 'A new worker requires an explicit model reload.');
+  assert.ok((await page.locator('#model-status-text').textContent()).includes('stopped'));
+  assert.ok((await page.locator('#uncertainty-badge').textContent()).includes('Previous completed result'));
+  assert.deepEqual(await page.locator('#interval-rows tr').allTextContents(), intervalText, 'A cancelled partial run never replaces the previous valid intervals.');
   assert.deepEqual(errors, [], 'No unhandled frontend JavaScript errors.');
   assert.deepEqual(blockedRequests, [], 'Neither the page nor its worker may contact an external origin.');
   assert.equal(requests.filter(request => !['GET', 'HEAD'].includes(request.method)).length, 0, 'No image upload or inference service request.');
@@ -133,6 +144,7 @@ try {
     passes: 50, intervalsPerDistributionSamples: 4096, originalImageCoordinates: true, finiteAngles: values,
     browserModelDownloadsExplicit: true, modelIntegrityVerified: true, imageUploadRequests: 0,
     manualGeometryKeptSeparateFromInference: true, restoredModelLandmarks: true, mobileHorizontalOverflow: overflow,
+    cancellationAfterActualProgress: true, completedBeforeCancellation, cancelledWorkerUnloaded: true,
     javascriptErrors: errors, externalRequestsBlocked: blockedRequests, allRequestOriginsRestrictedTo: allowedOrigin,
     modelDownloadAndLoadSeconds, inferenceAndIntervalSamplingSeconds,
     secondsIncludingInferenceAndInteractions: (Date.now() - started) / 1000,
