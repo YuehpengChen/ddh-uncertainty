@@ -10,7 +10,7 @@ The deployed URL passed a 50-pass hosted Chromium test with no image uploads or 
 
 ## What visitors can do
 
-- Open a PNG, JPEG or WebP image in their own browser.
+- Select one of three public, de-identified infant hip ultrasound examples, or open a PNG, JPEG or WebP image in their own browser.
 - Explicitly download the inference model and predict five landmarks.
 - Run 10, 20 or 50 genuine stochastic passes; 50 matches the study's inference setting.
 - Inspect the angle at the mean landmarks, marginal coordinate contours, and nominal central 90% angle intervals.
@@ -18,12 +18,25 @@ The deployed URL passed a 50-pass hosted Chromium test with no image uploads or 
 - Drag landmarks to explore geometry without rerunning the model.
 - Download the two inference graphs and inspect the published validation reports.
 
-The initial illustration and its landmarks are synthetic and are explicitly labeled as explanatory material. They are not a patient case or an AI prediction.
+The initial illustration and its landmarks are synthetic and are explicitly labeled as explanatory material. They are not a patient case or an AI prediction. Selecting a public example replaces the illustration with a real, unchanged source image and clears the previous prediction. No placeholder landmarks or angles appear on a public example until the visitor requests a prediction or explicitly edits manual coordinates.
+
+## Public examples
+
+```
+Example 1 / 2 / 3 -> Load browser model -> Predict landmarks & intervals
+```
+
+The three 256×256 RGB images are from the original authors' [SPJ dataset](https://github.com/hidden-ops/NHBS-Net_SPJ_dataset), distributed under its [Apache License 2.0](examples/LICENSE-SPJ.txt). The authors' [QualityDDH paper, Section 4.1](https://doi.org/10.1007/s00371-025-04121-2), identifies this dataset and reports anonymized reports and ultrasound images. The supplied copies were also inspected for visible identifying text, and their PNG files contain no text or EXIF metadata chunks.
+
+Files are copied byte-for-byte from a pinned source revision, with only local filenames changed. Source filenames, hashes, attribution, anonymization basis and reuse notes are in [the example manifest](examples/manifest.json) and [NOTICE](examples/NOTICE.md). The first three distinct files in numeric standard-plane order were selected before any model inference. The standard-plane folder is not a per-image diagnosis. Individual Graf types, reference angles, clinical outcomes and training-set overlap are not established here. These examples demonstrate execution, not independent clinical validation or calibrated uncertainty.
+
+Example images are fetched only when selected, from the same GitHub Pages origin as the website. The model is still loaded explicitly and inference still runs on the visitor's device. There is no precomputed example prediction.
 
 ## Computation and privacy
 
 ```
 GitHub Pages -- website + model files --> visitor browser
+public sample -- selected on demand ---> visitor browser
 local image  -- decoded RGB -----------> browser worker
 browser CPU  -- landmarks + intervals -> display
 ```
@@ -54,4 +67,4 @@ The public deployment workflow downloads the verified release bundle, runs pure 
 
 Source files are divided into the website, `model/` (minimal export architecture), `cloud/` (cloud-only conversion and verification), `validation/` (geometry and preprocessing checks), and `tests/` (cloud browser checks). Model and runtime binaries are release assets rather than Git source files.
 
-Upstream software retains its own licenses. No patient images, annotation tables, training records, or full training checkpoints are distributed with this website.
+Upstream software and the public example images retain their own licenses. Only the three documented public, de-identified example images are distributed. Private study images, annotation tables, training records and full training checkpoints remain excluded.

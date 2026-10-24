@@ -7,6 +7,7 @@ const state = {
   manifest: null, modelReady: false, worker: null, busy: false, image: null,
   width: 720, height: 620, uploaded: false, points: [], originalPoints: [],
   prediction: null, moved: false, dragIndex: null, displayAngle: 'alpha', sequence: 0,
+  example: null, examplesManifest: null, imageRequest: 0, exampleLoading: false,
 };
 const illustration = [[.14, .40], [.50, .40], [.72, .79], [.54, .43], [.72, .19]];
 const COLORS = { points: '#b3d2ff', mixture: '#175cc5', full: '#242829', diagonal: '#8c9297' };
@@ -25,15 +26,19 @@ function status(message, mode = '') {
 
 function updateControls() {
   const ready = state.manifest?.status === 'ready';
-  $('load-model').disabled = !ready || state.busy || state.modelReady;
+  $('load-model').disabled = !ready || state.busy || state.modelReady || state.exampleLoading;
   $('load-model').textContent = state.modelReady ? 'Model loaded on this device' : 'Load browser model';
-  $('predict').disabled = !state.modelReady || !state.uploaded || state.busy;
+  $('predict').disabled = !state.modelReady || !state.uploaded || state.busy || state.exampleLoading;
   $('pass-count').disabled = state.busy;
   $('cancel-predict').hidden = !state.busy;
   $('restore-prediction').hidden = !state.prediction || !state.moved;
   $('show-contours').disabled = !state.prediction || state.moved;
   $('show-raters').disabled = state.uploaded;
   for (const input of $('coordinate-fields').querySelectorAll('input')) input.disabled = state.busy;
+  for (const button of $('example-list').querySelectorAll('button')) {
+    button.disabled = state.busy || state.exampleLoading;
+    button.setAttribute('aria-pressed', String(button.dataset.exampleId === state.example?.id));
+  }
 }
 
 function syntheticImage() {
@@ -61,11 +66,15 @@ function syntheticImage() {
 
 function clearPrediction() {
   state.prediction = null; state.moved = false;
+  $('interval-rows').replaceChildren(); $('distribution-plot').replaceChildren(); $('sampling-note').textContent = '';
   $('uncertainty-empty').hidden = false; $('uncertainty-results').hidden = true;
   $('uncertainty-badge').textContent = 'Awaiting a model prediction';
 }
 
 function resetImage() {
+  state.imageRequest++; state.exampleLoading = false; state.example = null;
+  $('example-credit').hidden = true;
+  $('example-status').textContent = state.examplesManifest ? 'Select an example to download its image. Inference starts only when you request it.' : 'Loading available examples…';
   if (state.busy) cancelComputation(false);
   if (state.image?.close) state.image.close();
   state.image = syntheticImage(); state.width = 720; state.height = 620; state.uploaded = false;
@@ -89,6 +98,7 @@ function draw() {
   const w = canvas.width, h = canvas.height, sx = w / state.width, sy = h / state.height;
   context.clearRect(0, 0, w, h);
   context.drawImage(state.image, 0, 0, w, h);
+  if (state.example && !state.prediction && !state.moved) return;
   context.save(); context.scale(sx, sy);
   const unit = Math.max(state.width, state.height) / 720;
   if (state.prediction && !state.moved && $('show-contours').checked) {
@@ -145,6 +155,12 @@ function buildCoordinateFields() {
 }
 
 function updateAngles() {
+  if (state.example && !state.prediction && !state.moved) {
+    $('alpha-value').textContent = '—'; $('beta-value').textContent = '—';
+    $('measurement-mode').textContent = 'Awaiting model prediction';
+    $('overlay-key').textContent = 'Public image · no landmarks predicted yet';
+    return;
+  }
   const angles = grafAngles(state.points);
   for (const key of ['alpha', 'beta']) $(`${key}-value`).textContent = angles[key] === null ? '—' : `${angles[key].toFixed(1)}°`;
   $('measurement-mode').textContent = state.prediction && !state.moved ? 'Model mean coordinates' : 'Geometry exploration';
@@ -153,6 +169,7 @@ function updateAngles() {
 }
 
 function geometryChanged() {
+  if (state.example) state.moved = true;
   if (state.prediction) { state.moved = true; $('uncertainty-badge').textContent = 'Model distribution · unchanged by dragging'; }
   updateAngles(); updateControls(); draw();
 }
@@ -186,12 +203,16 @@ $('open-image').addEventListener('click', () => $('image-file').click());
 $('image-file').addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file) return;
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 20 * 1024 * 1024) { say('Choose a PNG, JPEG or WebP image smaller than 20 MB.'); return; }
+  const request = ++state.imageRequest; state.exampleLoading = false; updateControls();
   try {
     const image = await createImageBitmap(file, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    if (request !== state.imageRequest) { image.close(); return; }
     if (image.width < 32 || image.height < 32 || image.width > 8192 || image.height > 8192 || image.width * image.height > 16000000) { image.close(); throw new Error('Image dimensions must be 32–8192 pixels per side and at most 16 megapixels in total.'); }
     if (state.busy) cancelComputation(false);
     if (state.image?.close) state.image.close();
     state.image = image; state.width = image.width; state.height = image.height; state.uploaded = true;
+    state.example = null; $('example-credit').hidden = true;
+    $('example-status').textContent = 'Your local image is selected. Public examples remain available above.';
     state.points = illustration.map(([x, y]) => [x * state.width, y * state.height]); state.originalPoints = state.points.map(p => [...p]); clearPrediction();
     $('image-source').textContent = 'Your local image · not uploaded';
     $('image-note').textContent = 'The initial points are manual placeholders, not model predictions. Run the model to replace them. Uploaded files stay in browser memory.';
@@ -200,6 +221,83 @@ $('image-file').addEventListener('change', async event => {
     if (state.modelReady) say('Image opened locally. Select “Predict landmarks & intervals” to run the model.');
   } catch (error) { say(`Image could not be opened: ${error.message}`); }
 });
+
+function exampleAssetURL(value) {
+  const url = new URL(value, document.baseURI), directory = new URL('examples/', document.baseURI);
+  if (url.origin !== directory.origin || !url.pathname.startsWith(directory.pathname) || url.username || url.password) throw new Error('Example assets must come from this website.');
+  return url;
+}
+
+function exampleCredit(item) {
+  const target = $('example-credit'), manifest = state.examplesManifest;
+  target.replaceChildren(document.createTextNode(`${manifest.attribution} Original file: ${item.sourceFile}. `));
+  for (const [label, address] of [['Dataset source', manifest.sourceURL], [manifest.license.label, manifest.license.url], ['Anonymization report', manifest.deidentification.sourceURL]]) {
+    const url = new URL(address, document.baseURI);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) continue;
+    const link = document.createElement('a'); link.textContent = label; link.href = url.href;
+    link.rel = 'noopener noreferrer'; target.append(link, document.createTextNode(' · '));
+  }
+  target.append(document.createTextNode('Unchanged source pixels. Individual diagnoses and reference angles are not supplied. No accuracy or calibration claim is made for these examples.'));
+  target.hidden = false;
+}
+
+async function selectExample(item) {
+  if (state.busy || state.exampleLoading) return;
+  const request = ++state.imageRequest;
+  state.exampleLoading = true; updateControls();
+  $('example-status').textContent = `Downloading and checking ${item.label}…`;
+  try {
+    const response = await fetch(exampleAssetURL(item.url), { redirect: 'error' });
+    if (!response.ok) throw new Error(`Image download failed (HTTP ${response.status}).`);
+    const bytes = await response.arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const checksum = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
+    if (bytes.byteLength !== item.bytes || checksum !== item.sha256) throw new Error('The example image does not match its published integrity record.');
+    if (request !== state.imageRequest) return;
+    const image = await createImageBitmap(new Blob([bytes], { type: 'image/png' }), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    if (request !== state.imageRequest) { image.close(); return; }
+    if (image.width !== item.width || image.height !== item.height) { image.close(); throw new Error('Unexpected example image dimensions.'); }
+    if (state.image?.close) state.image.close();
+    state.image = image; state.width = image.width; state.height = image.height;
+    state.uploaded = true; state.example = item;
+    state.points = illustration.map(([x, y]) => [x * state.width, y * state.height]);
+    state.originalPoints = state.points.map(point => [...point]); clearPrediction();
+    $('image-source').textContent = `Public example · ${item.label}`;
+    $('image-note').textContent = 'Published de-identified infant hip ultrasound. No landmarks have been predicted. Load the model and select Predict landmarks & intervals. Coordinate fields contain manual placeholders until prediction or manual editing.';
+    $('show-raters').checked = false; $('image-file').value = '';
+    exampleCredit(item);
+    $('example-status').textContent = `${item.label} selected and verified. The image runs through the same browser model as a local file. Selection does not start inference.`;
+    resizeCanvas(); buildCoordinateFields(); updateAngles(); draw();
+  } catch (error) {
+    if (request === state.imageRequest) { $('example-status').textContent = `Example unavailable: ${error.message}`; say(error.message); }
+  } finally {
+    if (request === state.imageRequest) { state.exampleLoading = false; updateControls(); }
+  }
+}
+
+async function inspectExamples() {
+  try {
+    const response = await fetch(exampleAssetURL('examples/manifest.json'), { redirect: 'error' });
+    if (!response.ok) throw new Error(`Example list returned HTTP ${response.status}.`);
+    const manifest = await response.json();
+    if (manifest.schemaVersion !== 1 || !Array.isArray(manifest.items) || manifest.items.length !== 3 || manifest.license?.label !== 'Apache-2.0') throw new Error('The public example list is invalid.');
+    const identifiers = new Set();
+    for (const item of manifest.items) {
+      exampleAssetURL(item.url);
+      if (!/^spj-0[123]$/.test(item.id) || identifiers.has(item.id) || !/^[a-f0-9]{64}$/.test(item.sha256) || !Number.isSafeInteger(item.bytes) || item.bytes <= 0 || item.width !== 256 || item.height !== 256) throw new Error('An example has an invalid integrity record.');
+      identifiers.add(item.id);
+    }
+    state.examplesManifest = manifest;
+    const list = $('example-list'); list.replaceChildren();
+    for (const item of manifest.items) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = item.label;
+      button.dataset.exampleId = item.id; button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => selectExample(item)); list.append(button);
+    }
+    $('example-status').textContent = 'Three public, de-identified hip ultrasound examples. Select one, load the model and request prediction. No individual diagnosis is supplied.';
+    updateControls();
+  } catch (error) { $('example-status').textContent = `Public examples are unavailable: ${error.message} You can still open a local image.`; }
+}
 
 function cancelComputation(announce = true) {
   state.sequence++; state.worker?.terminate(); state.worker = null; state.busy = false; state.modelReady = false;
@@ -240,7 +338,7 @@ function workerMessage(event) {
 }
 
 $('load-model').addEventListener('click', () => {
-  if (state.busy || !state.manifest) return;
+  if (state.busy || state.exampleLoading || !state.manifest) return;
   state.busy = true; updateControls(); status('Downloading and verifying model files…');
   state.worker = new Worker(new URL('./inference-worker.mjs', import.meta.url), { type: 'module' });
   state.worker.addEventListener('message', workerMessage);
@@ -252,7 +350,7 @@ $('load-model').addEventListener('click', () => {
 });
 
 $('predict').addEventListener('click', () => {
-  if (!state.modelReady || !state.uploaded || state.busy) return;
+  if (!state.modelReady || !state.uploaded || state.busy || state.exampleLoading) return;
   const source = document.createElement('canvas'); source.width = state.width; source.height = state.height;
   const ctx = source.getContext('2d', { willReadFrequently: true }); ctx.drawImage(state.image, 0, 0);
   // Send original decoded samples; the worker performs validated Pillow-style
@@ -349,4 +447,4 @@ async function inspectManifest() {
   } catch (error) { status('The model is not available on this deployment.', 'error'); $('model-details').textContent = `${error.message} Geometry exploration remains available; no replacement predictions are generated.`; }
 }
 
-resetImage(); inspectManifest();
+resetImage(); inspectManifest(); inspectExamples();

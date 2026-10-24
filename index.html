@@ -4,50 +4,51 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A research demonstration of browser-local landmark prediction and Graf-angle uncertainty in infant hip ultrasound. Images stay in your browser.">
-  <meta name="theme-color" content="#f4f3ef">
+  <meta name="theme-color" content="#ffffff">
   <title>DDH | Landmark &amp; Angle Uncertainty</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.mjs"></script>
 </head>
 <body>
-  <header class="site-header shell">
-    <a class="wordmark" href="#">DDH<span class="wordmark-rule"></span><span>Research demo</span></a>
-    <nav aria-label="Main navigation"><a href="#workspace">Explore</a><a href="#method">Method</a><a href="#limitations">Limits &amp; privacy</a></nav>
-  </header>
+  <header class="site-header shell"><nav aria-label="Main navigation"><a href="#workspace">Demo</a><a href="#method">Method</a><a href="#limitations">Limitations &amp; privacy</a></nav></header>
   <main>
     <section class="intro shell">
-      <div class="eyebrow"><span class="status-dot"></span>Client-side research software</div>
-      <h1>Five landmarks.<br>Two angles.<br><em>A distribution of possibilities.</em></h1>
-      <div class="intro-bottom"><p>Explore how landmark coordinates shape Graf α and β measurements. Run the downloadable research model on your own browser’s computing resources.</p><a class="text-link" href="#workspace">Open the interactive workspace <span aria-hidden="true">↗</span></a></div>
-      <p class="paper-title">Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</p>
+      <h1>Infant Hip Ultrasound: Landmark and Angle Uncertainty</h1>
+      <p>Predict five landmarks and examine Graf α and β angles. Inference runs on the visitor’s device; images remain in the browser.</p>
+      <p class="paper-title">Research: Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</p>
     </section>
 
     <section class="workspace shell" id="workspace" aria-labelledby="workspace-title">
-      <div class="section-heading"><div><span class="eyebrow">01 / Interactive workspace</span><h2 id="workspace-title">See the measurement.</h2></div><span class="privacy-pill">Images stay in this browser</span></div>
+      <h2 id="workspace-title">Demo</h2>
+      <section id="public-examples" aria-labelledby="examples-title">
+        <h3 id="examples-title">Public ultrasound examples</h3>
+        <p>Select an example or open a local image, load the model, then run prediction.</p>
+        <div id="example-list"></div>
+        <p id="example-status" role="status" aria-live="polite">Loading available examples…</p>
+        <p id="example-credit" class="small-copy" hidden></p>
+      </section>
       <div class="workspace-layout">
         <div class="image-panel">
           <div class="panel-toolbar"><span id="image-source">Demonstration image, not a patient scan</span><button class="subtle-button" id="reset-image">Reset</button></div>
-          <div class="canvas-wrap" id="canvas-wrap"><canvas id="image-canvas" width="720" height="620" aria-label="Interactive landmark image. Use the coordinate fields below to adjust each landmark with a keyboard."></canvas><div class="canvas-key"><span class="key-line"></span><span id="overlay-key">Illustrative landmarks · drag to explore</span></div></div>
-          <div class="image-footer"><button class="upload-button" id="open-image" type="button">Open an image <span aria-hidden="true">↗</span></button><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><span>PNG, JPEG or WebP · up to 20 MB</span></div>
+          <div class="canvas-wrap" id="canvas-wrap"><canvas id="image-canvas" width="720" height="620" aria-label="Interactive landmark image. Use the coordinate fields below to adjust each landmark with a keyboard."></canvas><div class="canvas-key"><span id="overlay-key">Illustrative landmarks · drag to explore</span></div></div>
+          <div class="image-footer"><button id="open-image" type="button">Open a local image</button><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><span>PNG, JPEG or WebP · up to 20 MB</span></div>
           <p class="image-note" id="image-note">This synthetic image and its example points explain the interface. They are not model predictions.</p>
         </div>
 
         <aside class="controls-panel" aria-label="Inference controls">
-          <div class="control-number">A / Browser inference</div>
-          <h3>Your image.<br>Your device.</h3>
+          <h3>Browser inference</h3>
           <p class="small-copy">The model runs in a worker on the visitor’s CPU. No image is sent to an inference server or to the author’s computer.</p>
-          <div class="model-status" id="model-status" role="status" aria-live="polite"><span class="status-dot"></span><span id="model-status-text">Checking the published model…</span></div>
+          <div class="model-status" id="model-status" role="status" aria-live="polite"><span id="model-status-text">Checking the published model…</span></div>
           <button class="primary-button" id="load-model" disabled>Load browser model</button>
           <div class="inference-options"><label for="pass-count">Dropout passes</label><select id="pass-count"><option value="10">10 · exploratory</option><option value="20">20 · exploratory</option><option value="50" selected>50 · study setting</option></select></div>
           <button class="primary-button secondary" id="predict" disabled>Predict landmarks &amp; intervals</button>
           <button class="subtle-button cancel-button" id="cancel-predict" hidden>Cancel computation</button>
           <div class="progress-wrap" id="progress-wrap" hidden><progress id="inference-progress" max="50" value="0"></progress><span id="progress-label">Preparing…</span></div>
-          <a class="text-link download-link" id="download-model" hidden download>Download model weights <span aria-hidden="true">↓</span></a>
-          <a class="text-link download-link" id="download-head" hidden download>Download landmark decoder ↓</a>
+          <a class="download-link" id="download-model" hidden download>Download model weights</a>
+          <a class="download-link" id="download-head" hidden download>Download landmark decoder</a>
           <p class="tiny-copy" id="model-details">Model availability and integrity are checked before prediction is enabled.</p>
-          <details class="model-provenance"><summary>Model provenance &amp; verification</summary><p id="model-provenance-text" class="tiny-copy">The published manifest records model hashes, input processing and research limitations.</p><a href="models/manifest.json" class="text-link">Model manifest ↗</a><a href="models/cloud_validation.json" class="text-link">Cloud verification ↗</a></details>
-          <div class="control-divider"></div>
-          <div class="control-number">B / Geometry exploration</div>
+          <details class="model-provenance"><summary>Model provenance &amp; verification</summary><p id="model-provenance-text" class="tiny-copy">The published manifest records model hashes, input processing and research limitations.</p><p><a href="models/manifest.json">Model manifest</a> · <a href="models/cloud_validation.json">Cloud verification</a></p></details>
+          <h3>Geometry exploration</h3>
           <p class="small-copy">Move any landmark to recalculate the two angles. Moving points does not rerun the AI model.</p>
           <label class="check-row"><input type="checkbox" id="show-lines" checked><span>Measurement lines</span></label>
           <label class="check-row"><input type="checkbox" id="show-raters"><span>Illustrative rater marks <small>synthetic example only</small></span></label>
@@ -57,7 +58,7 @@
       </div>
 
       <div class="results-strip" aria-live="polite">
-        <div class="result-label"><span class="eyebrow" id="measurement-mode">Geometry exploration</span><h3>Angles at the<br>displayed points</h3></div>
+        <div class="result-label"><span id="measurement-mode">Geometry exploration</span><h3>Angles at the displayed points</h3></div>
         <div class="angle-stat"><span class="angle-symbol">α</span><span class="angle-value" id="alpha-value">—</span><span class="angle-description">Baseline ↔ bony roof</span></div>
         <div class="angle-stat"><span class="angle-symbol">β</span><span class="angle-value" id="beta-value">—</span><span class="angle-description">Baseline ↔ cartilage roof</span></div>
         <p class="result-explainer">P1–P2 defines the baseline.<br>P4–P3 defines the bony roof.<br>P4–P5 defines the cartilage roof.</p>
@@ -65,9 +66,10 @@
       <details class="coordinates-details"><summary>Adjust landmark coordinates precisely</summary><div id="coordinate-fields" class="coordinate-fields"></div><p class="tiny-copy">Coordinates refer to the original image, in pixels. Unsigned segment angles range from 0° to 180°.</p></details>
 
       <section class="uncertainty-panel" id="uncertainty-panel" aria-labelledby="uncertainty-title">
-        <div class="uncertainty-heading"><div><span class="control-number">C / Coordinate dependence</span><h3 id="uncertainty-title">Point spread is only part of the story.</h3></div><span class="result-badge" id="uncertainty-badge">Awaiting a model prediction</span></div>
+        <h3 id="uncertainty-title">Coordinate dependence and angle uncertainty</h3>
+        <p id="uncertainty-badge">Awaiting a model prediction</p>
         <p class="small-copy">Two configurations can have the same spread at each landmark and different angle uncertainty. The comparison below preserves coordinate means and variances while changing how the coordinates move together.</p>
-        <div id="uncertainty-empty" class="empty-state"><span aria-hidden="true">↗</span><p>Run the model on an image to inspect its angle distributions.<br>No synthetic prediction or precomputed result is substituted.</p></div>
+        <div id="uncertainty-empty"><p>Run the model on an image to inspect its angle distributions. No synthetic prediction or precomputed result is substituted.</p></div>
         <div id="uncertainty-results" hidden>
           <div class="distribution-switch" role="group" aria-label="Angle distribution"><button class="active" data-angle="alpha" aria-pressed="true">α angle</button><button data-angle="beta" aria-pressed="false">β angle</button></div>
           <svg id="distribution-plot" viewBox="0 0 960 250" role="img" aria-label="Angle distributions from model predictions"></svg>
@@ -78,13 +80,19 @@
     </section>
 
     <section class="method shell" id="method" aria-labelledby="method-title">
-      <div class="section-heading"><div><span class="eyebrow">02 / The research idea</span><h2 id="method-title">Keep the landmarks connected.</h2></div></div>
-      <div class="method-grid"><div class="method-description"><p class="large-copy">The measurement depends on how points move <em>together.</em></p><p>Stage 1 learns landmark configurations and coordinate variances from repeated annotations. Stage 2 predicts the learned representation from an image alone.</p><p>Repeated stochastic predictions describe changes between landmark configurations. The resulting joint coordinate distribution is propagated through the same α and β geometry shown above.</p></div><div class="method-diagram" aria-label="Method: image to learned configurations, joint landmark distribution, then angle distributions"><div><span>01</span><strong>Ultrasound image</strong><small>Visitor’s local file</small></div><span class="flow-arrow" aria-hidden="true">↓</span><div><span>02</span><strong>Learned landmark patterns</strong><small>Image-only prediction · repeated dropout</small></div><span class="flow-arrow" aria-hidden="true">↓</span><div><span>03</span><strong>Joint coordinates → α, β</strong><small>Landmarks and intervals displayed together</small></div></div></div>
+      <h2 id="method-title">Method</h2>
+      <p>Stage 1 learns landmark configurations and coordinate variances from repeated annotations. Stage 2 predicts the learned representation from an image alone.</p>
+      <p>Repeated stochastic predictions describe changes between landmark configurations. The joint coordinate distribution is propagated through the α and β geometry shown above. Coordinates that vary together can produce different angle uncertainty from coordinates that vary independently.</p>
     </section>
 
-    <section class="limits shell" id="limitations" aria-labelledby="limits-title"><span class="eyebrow">03 / Read the output responsibly</span><h2 id="limits-title">A research interface,<br>not a clinical decision.</h2><div class="limits-grid"><div><h3>Intervals need evaluation.</h3><p>“90%” is the nominal central interval, not a guarantee of coverage for a new patient. The α and β intervals require separate calibration and independent clinical evaluation.</p></div><div><h3>The image plane matters.</h3><p>Landmark prediction does not establish an adequate Graf measurement plane. Image quality, anatomy and the remaining clinical criteria require expert review.</p></div><div><h3>Local means local.</h3><p>Your image is decoded and processed in this browser. There are no analytics, image uploads or remote inference calls. The model and web assets are downloaded from the published hosting service.</p></div></div></section>
+    <section class="limits shell" id="limitations" aria-labelledby="limits-title">
+      <h2 id="limits-title">Limitations and privacy</h2>
+      <p>“90%” is the nominal central interval, not a guarantee of coverage for a new patient. The α and β intervals require separate calibration and independent clinical evaluation.</p>
+      <p>Landmark prediction does not establish an adequate Graf measurement plane. Image quality, anatomy and the remaining clinical criteria require expert review. This demonstration is for research use only.</p>
+      <p>Your image is decoded and processed in this browser. There are no analytics, image uploads or remote inference calls. The model and web assets are downloaded from the published hosting service.</p>
+    </section>
   </main>
-  <footer class="shell"><span>DDH / Landmark &amp; Angle Uncertainty</span><span>Research use only · No patient images are bundled.</span><a id="repository-link" href="https://github.com/YuehpengChen/ddh-uncertainty" rel="noopener noreferrer">Source &amp; reproducibility ↗</a></footer>
+  <footer class="shell"><span>Research use only.</span><a id="repository-link" href="https://github.com/YuehpengChen/ddh-uncertainty" rel="noopener noreferrer">Source and reproducibility</a></footer>
   <div class="toast" id="message" role="alert" hidden></div>
 </body>
 </html>

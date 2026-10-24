@@ -23,6 +23,7 @@ jobs:
           node --test validation/geometry.test.mjs
           node --test validation/resize_pillow_unit.test.mjs
           node --test tests/edge_guards.test.mjs
+          node cloud/verify_examples.mjs .
       - name: Download validated inference bundle
         env:
           GH_TOKEN: ${{ github.token }}
@@ -34,6 +35,7 @@ jobs:
           cp index.html style.css app.mjs geometry.mjs inference-worker.mjs _site/
           mkdir -p _site/validation
           cp validation/resize_pillow.mjs _site/validation/
+          cp -R examples _site/examples
           curl -fsSL https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.0/LICENSE --output _site/runtime/ONNX_RUNTIME_LICENSE
           curl -fsSL https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.0/ThirdPartyNotices.txt --output _site/runtime/ThirdPartyNotices.txt
           node cloud/verify_static_bundle.mjs _site
@@ -42,13 +44,17 @@ jobs:
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
       - name: Full UI and real inference check on cloud browser
-        run: node tests/site_cloud.mjs _site site-qa
+        run: |
+          node tests/site_cloud.mjs _site site-qa
+          node tests/examples_cloud.mjs _site examples-qa
       - name: Preserve browser proof and screenshots
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: pre-deploy-browser-proof
-          path: site-qa/
+          path: |
+            site-qa/
+            examples-qa/
           if-no-files-found: ignore
           retention-days: 14
       - name: Configure Pages
@@ -88,12 +94,16 @@ jobs:
       - name: Exercise deployed website with real browser inference
         env:
           SITE_URL: ${{ needs.deploy.outputs.url }}
-        run: node tests/site_cloud.mjs
+        run: |
+          node tests/site_cloud.mjs
+          node tests/examples_cloud.mjs
       - name: Preserve live browser proof
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: deployed-browser-proof
-          path: site-qa/
+          path: |
+            site-qa/
+            examples-qa/
           if-no-files-found: ignore
           retention-days: 14

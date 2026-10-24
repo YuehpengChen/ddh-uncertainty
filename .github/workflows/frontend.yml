@@ -8,6 +8,7 @@ on:
       - '*.mjs'
       - 'tests/**'
       - 'validation/**'
+      - 'examples/**'
       - '.github/workflows/frontend.yml'
 permissions:
   contents: read
@@ -24,6 +25,7 @@ jobs:
         run: |
           node --test validation/geometry.test.mjs validation/resize_pillow_unit.test.mjs
           node --test tests/edge_guards.test.mjs
+          node cloud/verify_examples.mjs .
           node --check app.mjs
           node --check inference-worker.mjs
       - name: Install browser test runner
@@ -35,6 +37,7 @@ jobs:
           mkdir -p _site/models _site/validation
           cp index.html style.css app.mjs geometry.mjs inference-worker.mjs _site/
           cp validation/resize_pillow.mjs _site/validation/
+          cp -R examples _site/examples
           cp tests/pending_manifest.json _site/models/manifest.json
           python -m http.server 8000 --directory _site > /tmp/ddh-frontend-server.log 2>&1 &
       - name: Check responsive UI without neural inference

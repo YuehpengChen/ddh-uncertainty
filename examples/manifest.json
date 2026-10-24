@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "attribution": "SPJ dataset, released by the NHBS-Net authors (Liu et al., IEEE Transactions on Medical Imaging, 2021).",
+  "sourceURL": "https://github.com/hidden-ops/NHBS-Net_SPJ_dataset",
+  "sourceCommit": "de5fb68c9094c668205fde3ce1225d337c3e3200",
+  "paperURL": "https://doi.org/10.1109/TMI.2021.3087857",
+  "license": {"label": "Apache-2.0", "url": "examples/LICENSE-SPJ.txt", "sourceURL": "https://github.com/hidden-ops/NHBS-Net_SPJ_dataset/blob/de5fb68c9094c668205fde3ce1225d337c3e3200/LICENSE"},
+  "deidentification": {
+    "sourceURL": "https://doi.org/10.1007/s00371-025-04121-2",
+    "sourceSection": "QualityDDH, Section 4.1 (Dataset)",
+    "basis": "The authors identify the SPJ dataset and report that the study used fully anonymized reports and ultrasound images.",
+    "visualReview": "Codex visually inspected all three supplied frames: no visible names, dates, identifiers, or examination labels were observed.",
+    "metadataReview": "Only PNG IHDR, IDAT and IEND chunks are present; no text or EXIF chunks.",
+    "reviewDate": "2026-10-24"
+  },
+  "scope": "Public infant hip ultrasound examples from a DDH screening dataset. Individual diagnostic labels are not supplied. Training-set overlap is not assessed. This demo does not establish clinical accuracy or interval calibration.",
+  "selection": "First three distinct standard-plane files in numeric filename order, selected before model inference. No selection based on prediction performance.",
+  "modifications": "Files renamed for the demo; image bytes, pixels, orientation and metadata are unchanged.",
+  "items": [
+    {"id": "spj-01", "label": "Example 1", "url": "examples/hip-01.png", "width": 256, "height": 256, "bytes": 80382, "sha256": "7b06ef35cb0c5ece88b0cb087daa906d52c1993b445e540e69000661502f2380", "sourceFile": "standard_0.png", "sourceURL": "https://raw.githubusercontent.com/hidden-ops/NHBS-Net_SPJ_dataset/de5fb68c9094c668205fde3ce1225d337c3e3200/SPJ_dataset/standard_ultrasound/standard_0.png", "clinicalDiagnosis": null},
+    {"id": "spj-02", "label": "Example 2", "url": "examples/hip-02.png", "width": 256, "height": 256, "bytes": 95475, "sha256": "5b9119c11d88c5da85f617deef94cd99ad47e86abb06816a54b947c2d1e7cb83", "sourceFile": "standard_2.png", "sourceURL": "https://raw.githubusercontent.com/hidden-ops/NHBS-Net_SPJ_dataset/de5fb68c9094c668205fde3ce1225d337c3e3200/SPJ_dataset/standard_ultrasound/standard_2.png", "clinicalDiagnosis": null},
+    {"id": "spj-03", "label": "Example 3", "url": "examples/hip-03.png", "width": 256, "height": 256, "bytes": 88093, "sha256": "0cf6d8a2740fecd0bb49bc785407deda6916434f61e0d10ba09da36d3589a3e0", "sourceFile": "standard_3.png", "sourceURL": "https://raw.githubusercontent.com/hidden-ops/NHBS-Net_SPJ_dataset/de5fb68c9094c668205fde3ce1225d337c3e3200/SPJ_dataset/standard_ultrasound/standard_3.png", "clinicalDiagnosis": null}
+  ]
+}

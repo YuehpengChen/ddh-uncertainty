@@ -3,6 +3,7 @@ package-lock.json
 _site/
 _bundle/
 site-qa/
+examples-qa/
 frontend_cloud_qa_*/
 release_bundle_*/
 validation/fixtures/
