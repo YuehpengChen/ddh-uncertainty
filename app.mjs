@@ -499,15 +499,11 @@ async function inspectManifest() {
     const response = await fetch(new URL('models/manifest.json', document.baseURI), { cache: 'no-store' });
     if (!response.ok) throw new Error(`Model manifest returned HTTP ${response.status}.`);
     const manifest = await response.json(); state.manifest = manifest;
-    if (manifest.dropout?.probability !== undefined) $('model-provenance-text').textContent = `The image backbone and normalization remain fixed. Predictor dropout uses ${manifest.dropout.sites || 26} explicit mask sites with probability ${manifest.dropout.probability}. The archived checkpoint omitted its training dropout rate; this value comes from the archived source default and remains an assumption. RGB8 resampling is checked against Pillow; browser file decoding, color profiles and orientation are separate steps. This demonstration has no established external clinical accuracy or interval calibration.`;
     if (manifest.repositoryURL && /^https:\/\/github\.com\//.test(manifest.repositoryURL)) $('repository-link').href = manifest.repositoryURL;
     if (manifest.status !== 'ready') { status('Model export and cloud validation are pending. Prediction is unavailable.'); $('model-details').textContent = manifest.message || 'The geometry workspace is available. It does not substitute for AI inference.'; updateControls(); return; }
     status('Model available');
-    const downloads = manifest.models;
-    const primary = Array.isArray(downloads) ? downloads[0] : downloads?.backbone;
-    if (primary?.url) { const link = $('download-model'); link.href = new URL(primary.url, document.baseURI); link.hidden = false; link.textContent = 'Download backbone weights ↓'; }
-    if (downloads?.head?.url) { const link = $('download-head'); link.href = new URL(downloads.head.url, document.baseURI); link.hidden = false; }
-    const bytes = Array.isArray(downloads) ? downloads.reduce((s, m) => s + (m.bytes || 0), 0) : Object.values(downloads || {}).reduce((s, m) => s + (m.bytes || 0), 0);
+    const models = manifest.models;
+    const bytes = Array.isArray(models) ? models.reduce((s, m) => s + (m.bytes || 0), 0) : Object.values(models || {}).reduce((s, m) => s + (m.bytes || 0), 0);
     $('model-details').textContent = `${bytes ? `Model download: ${(bytes / 1e6).toFixed(0)} MB · ` : ''}Browser CPU`;
     updateControls();
   } catch (error) { status('The model is not available on this deployment.', 'error'); $('model-details').textContent = `${error.message} Geometry exploration remains available; no replacement predictions are generated.`; }

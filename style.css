@@ -47,9 +47,7 @@ canvas { display: block; width: 100%; height: 100%; object-fit: contain; touch-a
 .primary-button { display: block; margin: 8px 0; width: 100%; text-align: left; }
 .inference-options { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 12px 0; font-size: 12px; }
 .inference-options select { min-width: 0; max-width: 175px; }
-.download-link { display: block; margin: 8px 0; font-size: 12px; }
-.model-provenance { margin: 12px 0 18px; font-size: 12px; }
-.model-provenance summary, .coordinates-details summary { cursor: pointer; }
+.coordinates-details summary { cursor: pointer; }
 .check-row { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0; font-size: 12px; }
 .check-row input { margin: 3px 0 0; }
 .check-row small { display: block; font-size: 11px; }

@@ -185,3 +185,105 @@ test('P4 contour uses its own complete 2D covariance block', () => {
   const determinant = 9*4-3*3;
   for (const [x,y] of contour) close((4*x*x-6*x*y+9*y*y)/determinant,1,1e-9);
 });
+
+// These fixtures have known eigenvectors and eigenvalues. The checks project
+// the returned curve onto those vectors rather than reproducing the renderer's
+// eigenvalue/angle calculation. The inverse quadratic form independently checks
+// that every contour point has the requested Mahalanobis radius.
+const blockCovariance = (index, [[xx,xy],[yx,yy]]) => {
+  const matrix = Array.from({length:10},()=>Array(10).fill(0));
+  const i = index * 2;
+  matrix[i][i]=xx; matrix[i][i+1]=xy;
+  matrix[i+1][i]=yx; matrix[i+1][i+1]=yy;
+  return matrix;
+};
+
+const checkKnownEllipse = (covariance, index, {block,major,minor,majorVariance,minorVariance,radius=2}) => {
+  const contour = browser.landmarkContour(covariance,index,radius,120);
+  const points = contour.slice(0,-1); // Do not count the closing point twice.
+  deepClose(contour[0],contour.at(-1),1e-10);
+  const projection = axis => points.map(([x,y])=>x*axis[0]+y*axis[1]);
+  const majorProjection = projection(major), minorProjection = projection(minor);
+  const majorRadius = Math.max(...majorProjection.map(Math.abs));
+  const minorRadius = Math.max(...minorProjection.map(Math.abs));
+  close(majorRadius,radius*Math.sqrt(majorVariance),1e-10);
+  close(minorRadius,radius*Math.sqrt(minorVariance),1e-10);
+  close(majorRadius/minorRadius,Math.sqrt(majorVariance/minorVariance),1e-10);
+  close(majorProjection.reduce((s,v)=>s+v,0)/points.length,0,1e-10);
+  close(minorProjection.reduce((s,v)=>s+v,0)/points.length,0,1e-10);
+  close(majorProjection.reduce((s,v,i)=>s+v*minorProjection[i],0)/points.length,0,1e-10);
+  const [[xx,xy],[,yy]]=block, determinant=xx*yy-xy*xy;
+  for (const [x,y] of points) {
+    close((yy*x*x-2*xy*x*y+xx*y*y)/determinant,radius*radius,1e-9);
+  }
+  return contour;
+};
+
+test('positive within-point covariance produces a positively tilted ellipse', () => {
+  const block = [[5,3],[3,5]], s=Math.SQRT1_2;
+  const covariance=blockCovariance(3,block);
+  // Other landmarks have different spreads; P4 must use coordinates 6 and 7.
+  covariance[4][4]=400; covariance[5][5]=900;
+  covariance[8][8]=1600; covariance[9][9]=2500;
+  checkKnownEllipse(covariance,3,{block,major:[s,s],minor:[-s,s],majorVariance:8,minorVariance:2});
+});
+
+test('negative within-point covariance reverses the ellipse tilt', () => {
+  const block = [[5,-3],[-3,5]], s=Math.SQRT1_2;
+  checkKnownEllipse(blockCovariance(3,block),3,{block,major:[s,-s],minor:[s,s],majorVariance:8,minorVariance:2});
+});
+
+test('zero within-point covariance preserves the correct axis-aligned spread', () => {
+  const block = [[9,0],[0,4]];
+  checkKnownEllipse(blockCovariance(0,block),0,{block,major:[1,0],minor:[0,1],majorVariance:9,minorVariance:4});
+  const verticalBlock = [[4,0],[0,9]];
+  checkKnownEllipse(blockCovariance(4,verticalBlock),4,{block:verticalBlock,major:[0,1],minor:[1,0],majorVariance:9,minorVariance:4});
+});
+
+test('isotropic covariance gives a circle without assigning a meaningful orientation', () => {
+  const contour=browser.landmarkContour(blockCovariance(2,[[4,0],[0,4]]),2,2,120);
+  for (const [x,y] of contour) close(Math.hypot(x,y),4,1e-10);
+  // A circle is invariant under rotation; no particular angle is required.
+  const theta=.63;
+  for (const [x,y] of contour) {
+    const xr=x*Math.cos(theta)-y*Math.sin(theta), yr=x*Math.sin(theta)+y*Math.cos(theta);
+    close(xr*xr/4+yr*yr/4,4,1e-10);
+  }
+});
+
+test('diagonal conditional variance reduces correlation without erasing signed xy dependence', () => {
+  const offsets=Array(10).fill(0); offsets[6]=2; offsets[7]=1;
+  const means=[-1,1].map(sign=>FLAT.map((v,j)=>v+sign*offsets[j]));
+  const conditional=Array(10).fill(0); conditional[6]=3; conditional[7]=3;
+  const result=browser.covarianceSummary(means,means.map(()=>conditional));
+  close(result.epistemic[6][6],4); close(result.epistemic[7][7],1);
+  close(result.epistemic[6][7],2); close(result.total[6][7],2);
+  close(result.total[6][6],7); close(result.total[7][7],4);
+  const epistemicCorrelation=result.epistemic[6][7]/Math.sqrt(result.epistemic[6][6]*result.epistemic[7][7]);
+  const totalCorrelation=result.total[6][7]/Math.sqrt(result.total[6][6]*result.total[7][7]);
+  close(epistemicCorrelation,1); close(totalCorrelation,1/Math.sqrt(7));
+  assert.ok(totalCorrelation>0 && totalCorrelation<epistemicCorrelation);
+  close(result.diagonal[6][7],0); // This diagnostic is intentionally different.
+  const s=Math.sqrt(5), block=[[7,2],[2,4]];
+  checkKnownEllipse(result.total,3,{block,major:[2/s,1/s],minor:[-1/s,2/s],majorVariance:8,minorVariance:3});
+});
+
+test('non-square original-pixel conversion scales variances quadratically and xy by width times height', () => {
+  const width=800, height=200;
+  const normalizedCenter=Array.from({length:5},()=>[.5,.5]).flat();
+  const normalizedOffset=Array(10).fill(0); normalizedOffset[6]=.01; normalizedOffset[7]=.02;
+  const normalizedMeans=[-1,1].map(sign=>normalizedCenter.map((v,j)=>v+sign*normalizedOffset[j]));
+  const normalizedConditional=Array(10).fill(0); normalizedConditional[6]=.0001; normalizedConditional[7]=.0004;
+  const normalized=browser.covarianceSummary(normalizedMeans,normalizedMeans.map(()=>normalizedConditional));
+  const scales=Array.from({length:5},()=>[width,height]).flat();
+  const pixelMeans=normalizedMeans.map(row=>row.map((v,j)=>v*scales[j]));
+  const pixelVariances=normalizedMeans.map(()=>normalizedConditional.map((v,j)=>v*scales[j]**2));
+  const pixels=browser.covarianceSummary(pixelMeans,pixelVariances);
+  close(pixels.mean[6],400); close(pixels.mean[7],100);
+  close(pixels.conditional[6],64); close(pixels.conditional[7],16);
+  close(pixels.total[6][6],128); close(pixels.total[7][7],32);
+  close(pixels.total[6][7],32); close(pixels.total[7][6],32);
+  for (let j=0;j<10;j++) for (let k=0;k<10;k++) {
+    close(pixels.total[j][k],normalized.total[j][k]*scales[j]*scales[k],1e-9);
+  }
+});

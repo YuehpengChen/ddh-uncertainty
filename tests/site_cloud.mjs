@@ -39,6 +39,95 @@ async function instrumentOperationTimer(page) {
   });
 }
 
+// Observe genuine worker messages and canvas calls without changing either.
+// Full pass distributions are not copied; only the actual covariance summaries
+// needed to verify the displayed landmark contours are retained.
+async function instrumentContourGeometry(page) {
+  await page.addInitScript(() => {
+    window.__qaWorkerResults = []; window.__qaContourPaths = [];
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(...args) {
+        super(...args);
+        this.addEventListener('message', event => {
+          if (event.data?.type !== 'result') return;
+          const { points, total, epistemic, conditional, passes, samples } = event.data.result;
+          window.__qaWorkerResults.push(structuredClone({ id: event.data.id, points, total, epistemic, conditional, passes, samples }));
+          window.__qaContourPaths = [];
+        });
+      }
+    };
+    const prototype = CanvasRenderingContext2D.prototype, paths = new WeakMap();
+    for (const name of ['beginPath', 'moveTo', 'lineTo', 'closePath', 'stroke']) {
+      const original = prototype[name];
+      prototype[name] = function (...args) {
+        if (this.canvas?.id === 'image-canvas') {
+          if (name === 'beginPath') paths.set(this, { points: [], closed: false });
+          const path = paths.get(this);
+          if (path && ['moveTo', 'lineTo'].includes(name)) path.points.push(args.slice(0, 2));
+          if (path && name === 'closePath') path.closed = true;
+          if (path && name === 'stroke' && path.closed && path.points.length === 49) {
+            window.__qaContourPaths.push(structuredClone(path.points));
+          }
+        }
+        return Reflect.apply(original, this, args);
+      };
+    }
+  });
+}
+
+async function verifyActualContourGeometry(page, label) {
+  const observation = await page.evaluate(() => ({
+    result: window.__qaWorkerResults.at(-1),
+    paths: window.__qaContourPaths.slice(0, 5),
+  }));
+  const { result, paths } = observation;
+  assert.ok(result, `${label}: a genuine inference worker result was observed.`);
+  assert.equal(result.points.length, 5);
+  assert.equal(paths.length, 5, `${label}: all five actual landmark contour paths were rendered.`);
+  const rounded = value => Number(value.toPrecision(10));
+  const matrix = (values, i) => [[values[i][i], values[i][i + 1]], [values[i + 1][i], values[i + 1][i + 1]]];
+  const characteristics = ([[xx, xy], [yx, yy]]) => {
+    assert.ok([xx, xy, yx, yy].every(Number.isFinite), 'Contour covariance entries are finite.');
+    const root = Math.hypot(xx - yy, 2 * xy), maximum = (xx + yy + root) / 2, minimum = (xx + yy - root) / 2;
+    return {
+      covariance: [[xx, xy], [yx, yy]].map(row => row.map(rounded)),
+      xyCorrelation: xx > 0 && yy > 0 ? rounded(xy / Math.sqrt(xx * yy)) : null,
+      majorAxisDegreesFromImageX: rounded(.5 * Math.atan2(2 * xy, xx - yy) * 180 / Math.PI),
+      majorToMinorAxisRatio: minimum > 0 ? rounded(Math.sqrt(maximum / minimum)) : null,
+    };
+  };
+  const diagnostics = result.points.map((center, k) => {
+    const i = k * 2, total = matrix(result.total, i), between = matrix(result.epistemic, i);
+    const conditional = [[result.conditional[i], 0], [0, result.conditional[i + 1]]];
+    for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
+      const expected = between[row][column] + conditional[row][column];
+      assert.ok(Math.abs(total[row][column] - expected) <= 1e-9 * Math.max(1, Math.abs(expected)), `${label} P${k + 1}: total retains between-pass covariance plus conditional diagonal variance.`);
+    }
+    const [[xx, xy], [yx, yy]] = total, determinant = xx * yy - xy * yx;
+    assert.ok(xx > 0 && yy > 0 && determinant > 0, `${label} P${k + 1}: actual contour covariance is positive definite.`);
+    assert.ok(Math.abs(xy - yx) <= 1e-10 * Math.max(1, Math.abs(xy)), 'The observed covariance is symmetric.');
+    const errors = paths[k].map(([x, y]) => {
+      const dx = x - center[0], dy = y - center[1];
+      // Independent inverse-matrix formula: no reuse of landmarkContour's
+      // eigenvectors, axis lengths, rotation, or point generation.
+      const squaredMahalanobis = (yy * dx * dx - (xy + yx) * dx * dy + xx * dy * dy) / determinant;
+      return Math.abs(squaredMahalanobis - 4);
+    });
+    const maximumMahalanobisError = Math.max(...errors);
+    assert.ok(maximumMahalanobisError < 1e-7, `${label} P${k + 1}: the actual rendered ellipse follows the full covariance, including xy, at radius 2.`);
+    assert.ok(Math.hypot(paths[k][0][0] - paths[k].at(-1)[0], paths[k][0][1] - paths[k].at(-1)[1]) < 1e-8, `${label}: the contour closes.`);
+    return {
+      landmark: `P${k + 1}`, center: center.map(rounded),
+      total: characteristics(total), conditional: characteristics(conditional),
+      betweenPass: characteristics(between),
+      renderedVertices: paths[k].length, radius: 2,
+      maximumMahalanobisError: rounded(maximumMahalanobisError),
+    };
+  });
+  return { observedResultId: result.id, passes: result.passes, actualRenderedCovarianceVerified: true, landmarks: diagnostics };
+}
+
 async function observeOperation(page, kind) {
   await page.evaluate(operation => {
     window.__qaObservation?.observer.disconnect();
@@ -207,6 +296,7 @@ try {
   page = await context.newPage();
   page.setDefaultTimeout(UI_TIMEOUT);
   await instrumentOperationTimer(page);
+  await instrumentContourGeometry(page);
   page.on('pageerror', error => { errors.push(error.message); console.error('[site pageerror]', error.message); });
   page.on('console', message => { logs.push({ type: message.type(), text: message.text() }); if (message.type() === 'error') console.error('[site console]', message.text()); });
   await page.goto(url, { waitUntil: 'networkidle' });
@@ -218,6 +308,7 @@ try {
   assert.equal(await page.locator('#uncertainty-results').isVisible(), false, 'No fabricated uncertainty result is prefilled.');
   assert.ok((await page.locator('#image-note').textContent()).includes('not model predictions'));
   const paperAndLicenseInformation = await verifyPaperMetadata(page);
+  assert.equal(await page.locator('.model-provenance, #download-model, #download-head, #download-manifest').count(), 0, 'The model-details and download disclosure is removed.');
   await page.screenshot({ path: path.join(output, 'desktop-initial.png'), fullPage: true });
 
   // This generated canvas is explicitly synthetic and contains no patient data.
@@ -242,10 +333,6 @@ try {
   verifyDownloadProgress(modelLoadProgress);
   const modelDownloadAndLoadSeconds = (Date.now() - modelLoadStarted) / 1000;
   assert.equal(await page.locator('#predict').isDisabled(), false);
-  const modelLink = await page.locator('#download-model').getAttribute('href');
-  const decoderLink = await page.locator('#download-head').getAttribute('href');
-  assert.ok(modelLink?.includes('backbone'), 'Backbone weights are downloadable.');
-  assert.ok(decoderLink?.includes('stage2_decoder'), 'Decoder weights are downloadable.');
   assert.ok((await page.locator('#model-details').textContent()).includes('SHA-256'));
   await page.locator('#pass-count').selectOption('50');
   await observeOperation(page, 'inference');
@@ -270,6 +357,7 @@ try {
     values[key] = value;
   }
   assert.equal(await page.locator('#measurement-mode').textContent(), 'Model mean coordinates');
+  const contourGeometry = await verifyActualContourGeometry(page, 'synthetic image genuine model inference');
   assert.ok((await page.locator('#uncertainty-badge').textContent()).includes('50 passes'));
   assert.ok((await page.locator('#sampling-note').textContent()).includes('4,096'));
   await verifyIntervalDetails(page);
@@ -322,7 +410,7 @@ try {
     cancellationAfterActualProgress: true, completedBeforeCancellation, cancelledWorkerUnloaded: true,
     javascriptErrors: errors, externalRequestsBlocked: blockedRequests, allRequestOriginsRestrictedTo: allowedOrigin,
     modelDownloadAndLoadSeconds, inferenceAndIntervalSamplingSeconds,
-    modelLoadProgress, inferenceProgress, cancellationProgress, paperAndLicenseInformation,
+    modelLoadProgress, inferenceProgress, cancellationProgress, paperAndLicenseInformation, contourGeometry,
     secondsIncludingInferenceAndInteractions: (Date.now() - started) / 1000,
     intervalRows: intervalText, requests, browserConsole: logs,
   };

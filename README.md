@@ -21,9 +21,9 @@ In the [initial synthetic-fixture run](https://github.com/YuehpengChen/ddh-uncer
 - Inspect the angle at the mean landmarks, marginal coordinate contours, and nominal central 90% angle intervals.
 - Compare a joint Gaussian with its diagonal-covariance counterpart while preserving the coordinate means and variances.
 - Drag landmarks to explore geometry without rerunning the model.
-- Download the two inference graphs and inspect the published validation reports.
+- Inspect published model and validation records in the source repository.
 
-The plain interface keeps operation controls and results visible. Method, interval accounting, provenance, and limitations are available in collapsed details. The header uses the manuscript's exact title. Authors remain pending confirmation because the current manuscript contains no author list.
+The plain interface keeps operation controls and results visible. Method, interval accounting, example provenance, and limitations are available in collapsed details. The header uses the manuscript's exact title. Authors remain pending confirmation because the current manuscript contains no author list.
 
 ```
 Download bytes -> Verify -> Prepare -> Completed passes -> Angle intervals
@@ -31,6 +31,8 @@ measured %       waiting   waiting   measured %           waiting
 ```
 
 The download percentage covers the two model graphs, not runtime files or setup time. The elapsed clock measures the current operation; it is not a remaining-time estimate. Completion, cancellation, and errors stop that clock.
+
+The interface has no separate model-details/download disclosure or manual weight-download buttons. Loading the browser model still retrieves the same verified graphs for inference; removing these controls does not make public model assets private.
 
 ## Paper and licensing
 
@@ -68,6 +70,10 @@ The application uses ONNX Runtime Web, one-thread WASM CPU execution, and same-o
 P1–P2 defines the baseline; P4–P3 defines the bony roof; P4–P5 defines the cartilage roof. The unsigned segment angles retain the full 0–180° range. Predictions are restored to original-image pixel coordinates before calculating angles.
 
 For T stochastic passes, the application averages the predicted diagonal conditional variance and adds the full covariance of the pass means, using denominator T. The mixture sampler chooses one shared pass for all ten coordinates in each of 4,096 draws. The controlled covariance comparison uses two Gaussians with identical means and diagonal variances and shared standard-normal samples. The finite mixture is displayed separately.
+
+Gray coordinate contours use each landmark's complete 2-by-2 block of total covariance, including its x-y covariance. They can be oblique; their orientation and axis lengths are computed from that block, not forced to the image axes. The conditional covariance predicted by this model is diagonal. Within-landmark x-y covariance comes from the shared stochastic-pass means, and adding conditional variance can make the total contour look more axis-aligned or circular. Cross-landmark covariance affects the joint angle distribution and is not represented in a single landmark's marginal ellipse.
+
+Pure geometry tests cover positive/negative oblique ellipses, axis-aligned ellipses, circles, and original-pixel scaling. Cloud browser checks independently compare the actual canvas contour vertices against their genuine inference covariance using a Mahalanobis-radius equation; they do not alter the predictions or force a visible tilt.
 
 The backbone runs once per image. Dropout remains active in the prediction head, including attention probability dropout. Batch-normalization buffers remain fixed at the evaluated train-only statistics. The archived Stage 2 checkpoint omits the dropout probability; the export reconstructs 0.3 from the archived source and discloses this limitation in the model manifest.
 
