@@ -10,49 +10,49 @@
   <script type="module" src="app.mjs"></script>
 </head>
 <body>
-  <header class="site-header shell"><nav aria-label="Main navigation"><a href="#workspace">Demo</a><a href="#method">Method</a><a href="#limitations">Limitations &amp; privacy</a></nav></header>
+  <header class="site-header shell"><nav aria-label="Main navigation"><a href="#workspace">Demo</a><a href="#method">Details</a><a href="#paper-info">Paper &amp; licenses</a></nav></header>
   <main>
     <section class="intro shell">
-      <h1>Infant Hip Ultrasound: Landmark and Angle Uncertainty</h1>
-      <p>Predict five landmarks and examine Graf α and β angles. Inference runs on the visitor’s device; images remain in the browser.</p>
-      <p class="paper-title">Research: Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</p>
+      <h1 id="paper-title">Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</h1>
+      <p id="paper-authors">Authors: pending confirmation</p>
+      <p class="small-copy">Browser-only demo · Images stay here · Research use only</p>
     </section>
 
     <section class="workspace shell" id="workspace" aria-labelledby="workspace-title">
       <h2 id="workspace-title">Demo</h2>
       <section id="public-examples" aria-labelledby="examples-title">
-        <h3 id="examples-title">Public ultrasound examples</h3>
-        <p>Select an example or open a local image, load the model, then run prediction.</p>
+        <h3 id="examples-title">Choose an image</h3>
+        <p>Choose → Load model → Predict</p>
         <div id="example-list"></div>
         <p id="example-status" role="status" aria-live="polite">Loading available examples…</p>
-        <p id="example-credit" class="small-copy" hidden></p>
+        <details id="example-source-details"><summary>Example source &amp; license</summary><p id="example-credit" class="small-copy" hidden></p></details>
       </section>
       <div class="workspace-layout">
         <div class="image-panel">
           <div class="panel-toolbar"><span id="image-source">Demonstration image, not a patient scan</span><button class="subtle-button" id="reset-image">Reset</button></div>
           <div class="canvas-wrap" id="canvas-wrap"><canvas id="image-canvas" width="720" height="620" aria-label="Interactive landmark image. Use the coordinate fields below to adjust each landmark with a keyboard."></canvas><div class="canvas-key"><span id="overlay-key">Illustrative landmarks · drag to explore</span></div></div>
           <div class="image-footer"><button id="open-image" type="button">Open a local image</button><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><span>PNG, JPEG or WebP · up to 20 MB</span></div>
-          <p class="image-note" id="image-note">This synthetic image and its example points explain the interface. They are not model predictions.</p>
+          <p class="image-note" id="image-note">Illustration only; not model predictions.</p>
         </div>
 
         <aside class="controls-panel" aria-label="Inference controls">
           <h3>Browser inference</h3>
-          <p class="small-copy">The model runs in a worker on the visitor’s CPU. No image is sent to an inference server or to the author’s computer.</p>
+          <p class="small-copy">Runs on your device. No image upload.</p>
           <div class="model-status" id="model-status" role="status" aria-live="polite"><span id="model-status-text">Checking the published model…</span></div>
           <button class="primary-button" id="load-model" disabled>Load browser model</button>
+          <div class="progress-wrap" id="load-progress-wrap" hidden data-phase="idle"><progress id="load-progress" max="100" aria-label="Model download and preparation"></progress><span id="load-progress-label">Preparing…</span></div>
           <div class="inference-options"><label for="pass-count">Dropout passes</label><select id="pass-count"><option value="10">10 · exploratory</option><option value="20">20 · exploratory</option><option value="50" selected>50 · study setting</option></select></div>
           <button class="primary-button secondary" id="predict" disabled>Predict landmarks &amp; intervals</button>
           <button class="subtle-button cancel-button" id="cancel-predict" hidden>Cancel computation</button>
-          <div class="progress-wrap" id="progress-wrap" hidden><progress id="inference-progress" max="50" value="0"></progress><span id="progress-label">Preparing…</span></div>
-          <a class="download-link" id="download-model" hidden download>Download model weights</a>
-          <a class="download-link" id="download-head" hidden download>Download landmark decoder</a>
+          <div class="progress-wrap" id="progress-wrap" hidden data-phase="idle"><progress id="inference-progress" max="50" value="0" aria-label="Prediction progress"></progress><span id="progress-label">Preparing…</span></div>
+          <p class="small-copy" id="operation-elapsed" hidden>Elapsed 0:00</p>
           <p class="tiny-copy" id="model-details">Model availability and integrity are checked before prediction is enabled.</p>
-          <details class="model-provenance"><summary>Model provenance &amp; verification</summary><p id="model-provenance-text" class="tiny-copy">The published manifest records model hashes, input processing and research limitations.</p><p><a href="models/manifest.json">Model manifest</a> · <a href="models/cloud_validation.json">Cloud verification</a></p></details>
+          <details class="model-provenance"><summary>Model details &amp; downloads</summary><p id="model-provenance-text" class="tiny-copy">Hashes, preprocessing and model assumptions.</p><a class="download-link" id="download-model" hidden download>Download backbone weights</a><a class="download-link" id="download-head" hidden download>Download landmark decoder</a><p><a href="models/manifest.json">Manifest</a> · <a href="models/cloud_validation.json">Verification</a></p><p>Download percentage counts model weights only. Verification, setup and interval calculation have no measured percentage.</p></details>
           <h3>Geometry exploration</h3>
-          <p class="small-copy">Move any landmark to recalculate the two angles. Moving points does not rerun the AI model.</p>
+          <p class="small-copy">Drag points to recalculate angles. No AI rerun.</p>
           <label class="check-row"><input type="checkbox" id="show-lines" checked><span>Measurement lines</span></label>
-          <label class="check-row"><input type="checkbox" id="show-raters"><span>Illustrative rater marks <small>synthetic example only</small></span></label>
-          <label class="check-row"><input type="checkbox" id="show-contours" checked disabled><span>Marginal Gaussian contours <small>Mahalanobis radius 2; not calibrated coverage</small></span></label>
+          <label class="check-row"><input type="checkbox" id="show-raters"><span>Illustrative rater marks</span></label>
+          <label class="check-row"><input type="checkbox" id="show-contours" checked disabled><span>Coordinate spread</span></label>
           <button class="subtle-button" id="restore-prediction" hidden>Restore model landmarks</button>
         </aside>
       </div>
@@ -66,30 +66,39 @@
       <details class="coordinates-details"><summary>Adjust landmark coordinates precisely</summary><div id="coordinate-fields" class="coordinate-fields"></div><p class="tiny-copy">Coordinates refer to the original image, in pixels. Unsigned segment angles range from 0° to 180°.</p></details>
 
       <section class="uncertainty-panel" id="uncertainty-panel" aria-labelledby="uncertainty-title">
-        <h3 id="uncertainty-title">Coordinate dependence and angle uncertainty</h3>
+        <h3 id="uncertainty-title">Angle intervals</h3>
         <p id="uncertainty-badge">Awaiting a model prediction</p>
-        <p class="small-copy">Two configurations can have the same spread at each landmark and different angle uncertainty. The comparison below preserves coordinate means and variances while changing how the coordinates move together.</p>
-        <div id="uncertainty-empty"><p>Run the model on an image to inspect its angle distributions. No synthetic prediction or precomputed result is substituted.</p></div>
+        <p class="small-copy">Nominal 90% intervals; uncalibrated.</p>
+        <div id="uncertainty-empty"><p>Run prediction to view intervals.</p></div>
         <div id="uncertainty-results" hidden>
           <div class="distribution-switch" role="group" aria-label="Angle distribution"><button class="active" data-angle="alpha" aria-pressed="true">α angle</button><button data-angle="beta" aria-pressed="false">β angle</button></div>
           <svg id="distribution-plot" viewBox="0 0 960 250" role="img" aria-label="Angle distributions from model predictions"></svg>
           <div class="interval-table-wrap"><table class="interval-table"><thead><tr><th>Distribution</th><th>α · central 90%</th><th>β · central 90%</th></tr></thead><tbody id="interval-rows"></tbody></table></div>
-          <p class="tiny-copy" id="sampling-note"></p>
+          <details id="interval-details"><summary>Interval details &amp; sample counts</summary><p class="tiny-copy" id="sample-count-details"></p><p class="tiny-copy" id="sampling-note"></p><p class="tiny-copy">Gray contours show marginal Gaussian spread at Mahalanobis radius 2; they do not establish calibrated coverage. Rater marks belong only to the synthetic illustration.</p></details>
         </div>
       </section>
     </section>
 
     <section class="method shell" id="method" aria-labelledby="method-title">
-      <h2 id="method-title">Method</h2>
+      <details><summary id="method-title">Method details</summary>
       <p>Stage 1 learns landmark configurations and coordinate variances from repeated annotations. Stage 2 predicts the learned representation from an image alone.</p>
       <p>Repeated stochastic predictions describe changes between landmark configurations. The joint coordinate distribution is propagated through the α and β geometry shown above. Coordinates that vary together can produce different angle uncertainty from coordinates that vary independently.</p>
+      </details>
     </section>
 
     <section class="limits shell" id="limitations" aria-labelledby="limits-title">
-      <h2 id="limits-title">Limitations and privacy</h2>
+      <details><summary id="limits-title">Limitations &amp; privacy</summary>
       <p>“90%” is the nominal central interval, not a guarantee of coverage for a new patient. The α and β intervals require separate calibration and independent clinical evaluation.</p>
       <p>Landmark prediction does not establish an adequate Graf measurement plane. Image quality, anatomy and the remaining clinical criteria require expert review. This demonstration is for research use only.</p>
       <p>Your image is decoded and processed in this browser. There are no analytics, image uploads or remote inference calls. The model and web assets are downloaded from the published hosting service.</p>
+      </details>
+    </section>
+    <section class="shell" id="paper-info">
+      <details><summary>Paper, authors &amp; licenses</summary>
+        <dl><dt>Paper</dt><dd>Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</dd><dt>Authors</dt><dd>Pending confirmation. No author list is present in the current manuscript.</dd><dt>Status</dt><dd>Research manuscript; no publication DOI is assigned here.</dd></dl>
+        <table class="license-table"><thead><tr><th>Material</th><th>License</th></tr></thead><tbody><tr><td>Paper, demo code &amp; model</td><td>Reuse license not specified</td></tr><tr><td>SPJ example images</td><td><a href="examples/LICENSE-SPJ.txt">Apache-2.0</a> · <a href="examples/NOTICE.md">Attribution</a></td></tr><tr><td>ONNX Runtime Web</td><td><a href="runtime/ONNX_RUNTIME_LICENSE">MIT · Microsoft</a> · <a href="runtime/ThirdPartyNotices.txt">Third-party notices</a></td></tr></tbody></table>
+        <p>Model download is available. Further reuse terms for the paper, code and model have not been specified. Third-party licenses apply only to their respective materials.</p>
+      </details>
     </section>
   </main>
   <footer class="shell"><span>Research use only.</span><a id="repository-link" href="https://github.com/YuehpengChen/ddh-uncertainty" rel="noopener noreferrer">Source and reproducibility</a></footer>

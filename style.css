@@ -81,7 +81,16 @@ canvas { display: block; width: 100%; height: 100%; object-fit: contain; touch-a
 .interval-table th { border-bottom: 1px solid #999; font-weight: bold; }
 .interval-table td:not(:first-child) { font-variant-numeric: tabular-nums; }
 .legend-swatch { display: inline-block; width: 18px; height: 3px; margin-right: 8px; vertical-align: middle; }
-.sample-count { display: block; font-size: 11px; margin: 3px 0 0 26px; }
+.sample-count { display: none; }
+summary { cursor: pointer; }
+#paper-authors { font-size: 13px; margin-bottom: 5px; }
+#example-source-details, #interval-details { font-size: 12px; margin: 8px 0; }
+#paper-info { margin-top: 18px; border-top: 1px solid #ccc; padding-top: 12px; font-size: 12px; }
+#paper-info dt { font-weight: bold; }
+#paper-info dd { margin: 2px 0 10px; }
+.license-table { border-collapse: collapse; width: 100%; }
+.license-table th, .license-table td { border-bottom: 1px solid #ccc; text-align: left; vertical-align: top; padding: 6px; }
+#operation-elapsed { font-variant-numeric: tabular-nums; margin: 5px 0; }
 .method, .limits { margin-top: 22px; border-top: 1px solid #ccc; }
 footer { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 22px !important; padding: 16px 0 24px; border-top: 1px solid #ccc; font-size: 12px; }
 .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); padding: 10px 14px; border: 1px solid #777; background: #fff; color: #111; font-size: 13px; z-index: 20; }

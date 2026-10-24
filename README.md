@@ -14,11 +14,25 @@ In the [initial synthetic-fixture run](https://github.com/YuehpengChen/ddh-uncer
 
 - Select one of three public, de-identified infant hip ultrasound examples, or open a PNG, JPEG or WebP image in their own browser.
 - Explicitly download the inference model and predict five landmarks.
+- Follow actual model-download bytes, completed prediction passes, and elapsed time. Preparation and interval calculation use indeterminate progress rather than an estimated percentage.
 - Run 10, 20 or 50 genuine stochastic passes; 50 matches the study's inference setting.
 - Inspect the angle at the mean landmarks, marginal coordinate contours, and nominal central 90% angle intervals.
 - Compare a joint Gaussian with its diagonal-covariance counterpart while preserving the coordinate means and variances.
 - Drag landmarks to explore geometry without rerunning the model.
 - Download the two inference graphs and inspect the published validation reports.
+
+The plain interface keeps operation controls and results visible. Method, interval accounting, provenance, and limitations are available in collapsed details. The header uses the manuscript's exact title. Authors remain pending confirmation because the current manuscript contains no author list.
+
+```
+Download bytes -> Verify -> Prepare -> Completed passes -> Angle intervals
+measured %       waiting   waiting   measured %           waiting
+```
+
+The download percentage covers the two model graphs, not runtime files or setup time. The elapsed clock measures the current operation; it is not a remaining-time estimate. Completion, cancellation, and errors stop that clock.
+
+## Paper and licensing
+
+The accompanying paper is a research manuscript. Author names and order remain to be confirmed; no publication status or DOI is assigned by this demo. No reuse license has been specified for the paper, demo code, or model. Model downloads are available without asserting an additional reuse grant. The SPJ example images retain Apache-2.0 terms, and ONNX Runtime Web retains its MIT license and third-party notices.
 
 The initial illustration and its landmarks are synthetic and are explicitly labeled as explanatory material. They are not a patient case or an AI prediction. Selecting a public example replaces the illustration with a real, unchanged source image and clears the previous prediction. No placeholder landmarks or angles appear on a public example until the visitor requests a prediction or explicitly edits manual coordinates.
 

@@ -11,6 +11,55 @@ const state = {
 };
 const illustration = [[.14, .40], [.50, .40], [.72, .79], [.54, .43], [.72, .19]];
 const COLORS = { points: '#b3d2ff', mixture: '#175cc5', full: '#242829', diagonal: '#8c9297' };
+let operationTimer = null, operationStartedAt = 0;
+
+function updateElapsed() {
+  const seconds = Math.max(0, Math.floor((performance.now() - operationStartedAt) / 1000));
+  $('operation-elapsed').textContent = `Elapsed ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+function stopOperationTimer() {
+  if (operationTimer !== null) { clearInterval(operationTimer); operationTimer = null; updateElapsed(); }
+}
+
+function startOperationTimer() {
+  stopOperationTimer(); operationStartedAt = performance.now();
+  $('operation-elapsed').hidden = false; updateElapsed();
+  operationTimer = setInterval(updateElapsed, 1000);
+}
+
+function showLoadProgress(message) {
+  const wrapper = $('load-progress-wrap'), progress = $('load-progress');
+  wrapper.hidden = false; wrapper.dataset.phase = message.phase;
+  progress.dataset.receivedBytes = String(message.receivedBytes);
+  progress.dataset.totalBytes = String(message.totalBytes);
+  let label;
+  if (message.phase === 'download' && message.computable && message.totalBytes > 0) {
+    const percentage = message.receivedBytes / message.totalBytes * 100;
+    progress.max = 100; progress.value = percentage;
+    label = `Model download ${Math.floor(percentage)}% · ${(message.receivedBytes / 1e6).toFixed(1)} / ${(message.totalBytes / 1e6).toFixed(1)} MB`;
+  } else if (message.phase === 'ready') {
+    progress.max = 100; progress.value = 100; label = 'Model ready';
+  } else {
+    progress.removeAttribute('value');
+    label = message.phase === 'verify' ? 'Verifying weights…' : message.phase === 'prepare' ? 'Preparing model…' : message.model === 'runtime' ? 'Loading runtime…' : 'Downloading model…';
+  }
+  progress.setAttribute('aria-valuetext', label); $('load-progress-label').textContent = label;
+}
+
+function showInferenceProgress(message) {
+  const progress = $('inference-progress'), phase = message.phase || 'predict';
+  $('progress-wrap').dataset.phase = phase; progress.max = message.total;
+  let label;
+  if (phase === 'predict') {
+    progress.value = message.completed;
+    label = `Prediction ${message.completed} / ${message.total} · ${Math.floor(message.completed / message.total * 100)}%`;
+  } else {
+    progress.removeAttribute('value');
+    label = phase === 'intervals' ? 'Calculating intervals…' : phase === 'preprocess' ? 'Preparing image…' : 'Extracting features…';
+  }
+  progress.setAttribute('aria-valuetext', label); $('progress-label').textContent = label;
+}
 
 function say(message) {
   $('message').textContent = message;
@@ -67,6 +116,7 @@ function syntheticImage() {
 function clearPrediction() {
   state.prediction = null; state.moved = false;
   $('interval-rows').replaceChildren(); $('distribution-plot').replaceChildren(); $('sampling-note').textContent = '';
+  $('sample-count-details').textContent = '';
   $('uncertainty-empty').hidden = false; $('uncertainty-results').hidden = true;
   $('uncertainty-badge').textContent = 'Awaiting a model prediction';
 }
@@ -74,7 +124,7 @@ function clearPrediction() {
 function resetImage() {
   state.imageRequest++; state.exampleLoading = false; state.example = null;
   $('example-credit').hidden = true;
-  $('example-status').textContent = state.examplesManifest ? 'Select an example to download its image. Inference starts only when you request it.' : 'Loading available examples…';
+  $('example-status').textContent = state.examplesManifest ? 'Choose an example or local image.' : 'Loading examples…';
   if (state.busy) cancelComputation(false);
   if (state.image?.close) state.image.close();
   state.image = syntheticImage(); state.width = 720; state.height = 620; state.uploaded = false;
@@ -82,7 +132,7 @@ function resetImage() {
   state.originalPoints = state.points.map(p => [...p]);
   clearPrediction();
   $('image-source').textContent = 'Demonstration image, not a patient scan';
-  $('image-note').textContent = 'This synthetic image and its example points explain the interface. They are not model predictions.';
+  $('image-note').textContent = 'Illustration only; not model predictions.';
   $('show-raters').checked = false;
   $('image-file').value = '';
   resizeCanvas(); buildCoordinateFields(); updateAngles(); updateControls(); draw();
@@ -215,7 +265,7 @@ $('image-file').addEventListener('change', async event => {
     $('example-status').textContent = 'Your local image is selected. Public examples remain available above.';
     state.points = illustration.map(([x, y]) => [x * state.width, y * state.height]); state.originalPoints = state.points.map(p => [...p]); clearPrediction();
     $('image-source').textContent = 'Your local image · not uploaded';
-    $('image-note').textContent = 'The initial points are manual placeholders, not model predictions. Run the model to replace them. Uploaded files stay in browser memory.';
+    $('image-note').textContent = 'manual placeholders; not model predictions. Image stays in this browser.';
     $('show-raters').checked = false;
     resizeCanvas(); buildCoordinateFields(); updateAngles(); updateControls(); draw();
     if (state.modelReady) say('Image opened locally. Select “Predict landmarks & intervals” to run the model.');
@@ -263,10 +313,10 @@ async function selectExample(item) {
     state.points = illustration.map(([x, y]) => [x * state.width, y * state.height]);
     state.originalPoints = state.points.map(point => [...point]); clearPrediction();
     $('image-source').textContent = `Public example · ${item.label}`;
-    $('image-note').textContent = 'Published de-identified infant hip ultrasound. No landmarks have been predicted. Load the model and select Predict landmarks & intervals. Coordinate fields contain manual placeholders until prediction or manual editing.';
+    $('image-note').textContent = 'Public, de-identified example. No predicted landmarks yet.';
     $('show-raters').checked = false; $('image-file').value = '';
     exampleCredit(item);
-    $('example-status').textContent = `${item.label} selected and verified. The image runs through the same browser model as a local file. Selection does not start inference.`;
+    $('example-status').textContent = `${item.label} selected · SHA-256 verified`;
     resizeCanvas(); buildCoordinateFields(); updateAngles(); draw();
   } catch (error) {
     if (request === state.imageRequest) { $('example-status').textContent = `Example unavailable: ${error.message}`; say(error.message); }
@@ -294,36 +344,39 @@ async function inspectExamples() {
       button.dataset.exampleId = item.id; button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => selectExample(item)); list.append(button);
     }
-    $('example-status').textContent = 'Three public, de-identified hip ultrasound examples. Select one, load the model and request prediction. No individual diagnosis is supplied.';
+    $('example-status').textContent = '3 public examples · No diagnostic labels';
     updateControls();
   } catch (error) { $('example-status').textContent = `Public examples are unavailable: ${error.message} You can still open a local image.`; }
 }
 
 function cancelComputation(announce = true) {
+  stopOperationTimer(); $('load-progress-wrap').hidden = true;
   state.sequence++; state.worker?.terminate(); state.worker = null; state.busy = false; state.modelReady = false;
   $('progress-wrap').hidden = true; status('Computation stopped. Reload the model to continue.'); updateControls();
   if (state.prediction) {
     $('uncertainty-badge').textContent = `Previous completed result · ${state.prediction.passes} passes`;
-    $('image-note').textContent = 'The current computation was stopped. The previously completed model prediction remains displayed; no partial-run intervals are shown.';
+    $('image-note').textContent = 'Stopped. Previous completed prediction retained; no partial intervals.';
   }
   if (announce) say('Computation cancelled. No image has left this browser.');
 }
 
 function workerMessage(event) {
   const message = event.data;
+  if (message.type === 'load-progress') { showLoadProgress(message); return; }
   if (message.type === 'status') { status(message.message); return; }
   if (message.type === 'loaded') {
-    state.modelReady = true; state.busy = false; $('progress-wrap').hidden = true; status('Model verified and ready on this device.', 'ready');
-    $('model-details').textContent = `Two ONNX sessions · browser CPU (WASM) · weights verified with SHA-256. ${state.uploaded ? 'Ready for your image.' : 'Open your own image to enable prediction.'}`;
+    stopOperationTimer(); state.modelReady = true; state.busy = false; $('progress-wrap').hidden = true; status('Model ready', 'ready');
+    $('model-details').textContent = 'SHA-256 verified · Browser CPU';
     updateControls(); return;
   }
   if (message.type === 'progress' && message.id === state.sequence) {
-    $('inference-progress').max = message.total; $('inference-progress').value = message.completed;
-    $('progress-label').textContent = message.message || `${message.completed} / ${message.total} dropout passes`; return;
+    showInferenceProgress(message); return;
   }
   if (message.type === 'result' && message.id === state.sequence) {
-    state.busy = false; state.prediction = message.result; state.points = message.result.points.map(p => [...p]); state.moved = false;
-    $('progress-wrap').hidden = true; $('image-note').textContent = 'Blue landmarks are the model’s average coordinates. Gray contours describe marginal Gaussian spread, not calibrated confidence regions. Dragging points switches to manual geometry.';
+    stopOperationTimer(); state.busy = false; state.prediction = message.result; state.points = message.result.points.map(p => [...p]); state.moved = false;
+    $('inference-progress').max = message.result.passes; $('inference-progress').value = message.result.passes;
+    $('progress-wrap').dataset.phase = 'done'; $('progress-label').textContent = `Done · ${message.result.passes} / ${message.result.passes}`;
+    $('progress-wrap').hidden = true; $('image-note').textContent = 'Model mean points · Gray contours: coordinate spread';
     if (state.points.some(([x, y]) => x < 0 || y < 0 || x > state.width || y > state.height)) $('image-note').textContent += ' Some predicted landmarks lie outside the image; they have not been clipped to the image boundary.';
     status(`${message.result.passes} stochastic passes completed on this device.`, 'ready');
     $('uncertainty-empty').hidden = true; $('uncertainty-results').hidden = false;
@@ -331,6 +384,7 @@ function workerMessage(event) {
     buildCoordinateFields(); updateAngles(); updateControls(); draw(); renderUncertainty(); return;
   }
   if (message.type === 'error') {
+    stopOperationTimer(); $('load-progress-wrap').hidden = true;
     state.busy = false; $('progress-wrap').hidden = true;
     if (message.phase === 'load') { state.modelReady = false; state.worker?.terminate(); state.worker = null; }
     status(message.message || 'The computation failed.', 'error'); updateControls(); say(message.message || 'The computation failed. No placeholder prediction was substituted.');
@@ -339,27 +393,38 @@ function workerMessage(event) {
 
 $('load-model').addEventListener('click', () => {
   if (state.busy || state.exampleLoading || !state.manifest) return;
+  startOperationTimer(); $('load-progress-wrap').hidden = false; $('load-progress-wrap').dataset.phase = 'prepare';
+  $('load-progress').removeAttribute('value'); $('load-progress-label').textContent = 'Loading runtime…';
   state.busy = true; updateControls(); status('Downloading and verifying model files…');
-  state.worker = new Worker(new URL('./inference-worker.mjs', import.meta.url), { type: 'module' });
-  state.worker.addEventListener('message', workerMessage);
-  state.worker.addEventListener('error', event => {
-    state.busy = false; state.modelReady = false; state.worker?.terminate(); state.worker = null;
-    status('The browser worker could not start. Check browser support and reload.', 'error'); updateControls(); say(event.message || 'Browser worker failed.');
-  });
-  state.worker.postMessage({ type: 'init', manifestURL: new URL('models/manifest.json', document.baseURI).href });
+  try {
+    state.worker = new Worker(new URL('./inference-worker.mjs', import.meta.url), { type: 'module' });
+    state.worker.addEventListener('message', workerMessage);
+    state.worker.addEventListener('error', event => {
+      workerMessage({ data: { type: 'error', phase: 'load', message: event.message || 'Browser worker failed. Check browser support and reload.' } });
+    });
+    state.worker.postMessage({ type: 'init', manifestURL: new URL('models/manifest.json', document.baseURI).href });
+  } catch (error) {
+    workerMessage({ data: { type: 'error', phase: 'load', message: error.message || 'Browser worker could not start.' } });
+  }
 });
 
 $('predict').addEventListener('click', () => {
   if (!state.modelReady || !state.uploaded || state.busy || state.exampleLoading) return;
-  const source = document.createElement('canvas'); source.width = state.width; source.height = state.height;
-  const ctx = source.getContext('2d', { willReadFrequently: true }); ctx.drawImage(state.image, 0, 0);
-  // Send original decoded samples; the worker performs validated Pillow-style
-  // RGB8 resampling rather than browser-dependent Canvas downsampling.
-  const image = ctx.getImageData(0, 0, state.width, state.height), passes = Number($('pass-count').value);
-  state.busy = true; state.sequence++; updateControls();
-  $('progress-wrap').hidden = false; $('inference-progress').max = passes; $('inference-progress').value = 0;
-  $('progress-label').textContent = 'Extracting image features…'; status('Running locally in this visitor’s browser…');
-  state.worker.postMessage({ type: 'predict', id: state.sequence, image, originalWidth: state.width, originalHeight: state.height, passes }, [image.data.buffer]);
+  startOperationTimer(); $('load-progress-wrap').hidden = true;
+  try {
+    const source = document.createElement('canvas'); source.width = state.width; source.height = state.height;
+    const ctx = source.getContext('2d', { willReadFrequently: true }); ctx.drawImage(state.image, 0, 0);
+    // Send original decoded samples; the worker performs validated Pillow-style
+    // RGB8 resampling rather than browser-dependent Canvas downsampling.
+    const image = ctx.getImageData(0, 0, state.width, state.height), passes = Number($('pass-count').value);
+    state.busy = true; state.sequence++; updateControls();
+    $('progress-wrap').hidden = false; $('inference-progress').max = passes; $('inference-progress').value = 0;
+    $('progress-wrap').dataset.phase = 'preprocess'; $('inference-progress').removeAttribute('value');
+    $('progress-label').textContent = 'Preparing image…'; status('Running in your browser…');
+    state.worker.postMessage({ type: 'predict', id: state.sequence, image, originalWidth: state.width, originalHeight: state.height, passes }, [image.data.buffer]);
+  } catch (error) {
+    workerMessage({ data: { type: 'error', phase: 'predict', message: error.message || 'The image could not be prepared.' } });
+  }
 });
 
 function renderUncertainty() {
@@ -377,6 +442,7 @@ function renderUncertainty() {
     for (const angle of ['alpha', 'beta']) { const cell = document.createElement('td'), bounds = prediction.distributions[key].intervals[angle]; cell.textContent = bounds ? `${bounds[0].toFixed(1)}° – ${bounds[1].toFixed(1)}°` : 'Undefined'; row.append(cell); }
     tbody.append(row);
   }
+  $('sample-count-details').textContent = Object.entries(prediction.distributions).map(([name, distribution]) => `${labels[name]}: ${distribution.alpha.length.toLocaleString()} valid; ${distribution.invalid.toLocaleString()} degenerate / ${prediction.samples.toLocaleString()} drawn.`).join(' ');
   $('sampling-note').textContent = `${prediction.samples.toLocaleString()} requested joint draws per distribution; valid and degenerate counts are listed for each row. The inference worker reports no intervals if any draw is degenerate. Bounds use 5th and 95th linearly interpolated percentiles. The dotted vertical line marks the angle at the mean model coordinates. The mixture selects one common dropout pass for all 10 coordinates. The two Gaussians use the same mean, coordinate variances and standard-normal draws; only cross-coordinate covariance changes. Mixture versus Gaussian also changes distributional shape. Intervals are nominal and uncalibrated. ${prediction.passes < 50 ? 'Fewer than the study’s 50 passes: exploratory setting. ' : ''}Units: original-image pixels and degrees.`;
   renderPlot();
 }
@@ -436,13 +502,13 @@ async function inspectManifest() {
     if (manifest.dropout?.probability !== undefined) $('model-provenance-text').textContent = `The image backbone and normalization remain fixed. Predictor dropout uses ${manifest.dropout.sites || 26} explicit mask sites with probability ${manifest.dropout.probability}. The archived checkpoint omitted its training dropout rate; this value comes from the archived source default and remains an assumption. RGB8 resampling is checked against Pillow; browser file decoding, color profiles and orientation are separate steps. This demonstration has no established external clinical accuracy or interval calibration.`;
     if (manifest.repositoryURL && /^https:\/\/github\.com\//.test(manifest.repositoryURL)) $('repository-link').href = manifest.repositoryURL;
     if (manifest.status !== 'ready') { status('Model export and cloud validation are pending. Prediction is unavailable.'); $('model-details').textContent = manifest.message || 'The geometry workspace is available. It does not substitute for AI inference.'; updateControls(); return; }
-    status('Published model available. Load it onto this device.');
+    status('Model available');
     const downloads = manifest.models;
     const primary = Array.isArray(downloads) ? downloads[0] : downloads?.backbone;
     if (primary?.url) { const link = $('download-model'); link.href = new URL(primary.url, document.baseURI); link.hidden = false; link.textContent = 'Download backbone weights ↓'; }
     if (downloads?.head?.url) { const link = $('download-head'); link.href = new URL(downloads.head.url, document.baseURI); link.hidden = false; }
     const bytes = Array.isArray(downloads) ? downloads.reduce((s, m) => s + (m.bytes || 0), 0) : Object.values(downloads || {}).reduce((s, m) => s + (m.bytes || 0), 0);
-    $('model-details').textContent = `${bytes ? `Model download: ${(bytes / 1024 / 1024).toFixed(0)} MB. ` : ''}CPU inference uses this visitor’s device; the author’s computer is not involved. Browser memory and runtime vary.`;
+    $('model-details').textContent = `${bytes ? `Model download: ${(bytes / 1e6).toFixed(0)} MB · ` : ''}Browser CPU`;
     updateControls();
   } catch (error) { status('The model is not available on this deployment.', 'error'); $('model-details').textContent = `${error.message} Geometry exploration remains available; no replacement predictions are generated.`; }
 }

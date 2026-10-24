@@ -25,8 +25,164 @@ const mime = {
 };
 const requests = [], blockedRequests = [], errors = [], logs = [], workerURLs = [];
 const examples = [], layoutChecks = [];
+const UI_TIMEOUT = 90_000, MODEL_TIMEOUT = 30 * 60 * 1000;
+const PAPER_TITLE = 'Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound';
+
+async function instrumentOperationTimer(page) {
+  await page.addInitScript(() => {
+    const originalSetInterval = window.setInterval.bind(window), originalClearInterval = window.clearInterval.bind(window);
+    const active = new Set();
+    window.__qaTimers = { scheduled: 0, peakActive: 0, active: 0 };
+    window.setInterval = (callback, delay, ...args) => {
+      const id = originalSetInterval(callback, delay, ...args);
+      if (Number(delay) === 1000) {
+        active.add(id); window.__qaTimers.scheduled++;
+        window.__qaTimers.active = active.size;
+        window.__qaTimers.peakActive = Math.max(window.__qaTimers.peakActive, active.size);
+      }
+      return id;
+    };
+    window.clearInterval = id => {
+      active.delete(id); window.__qaTimers.active = active.size;
+      return originalClearInterval(id);
+    };
+  });
+}
+
+async function observeOperation(page, kind) {
+  await page.evaluate(operation => {
+    window.__qaObservation?.observer.disconnect();
+    const records = [], scheduledBefore = window.__qaTimers.scheduled;
+    const visible = node => !!node && !node.hidden && node.getClientRects().length > 0;
+    let previous;
+    const capture = () => {
+      const wrap = document.getElementById(operation === 'load' ? 'load-progress-wrap' : 'progress-wrap');
+      const bar = document.getElementById(operation === 'load' ? 'load-progress' : 'inference-progress');
+      const elapsed = document.getElementById('operation-elapsed');
+      if (!wrap || !bar || !elapsed) throw new Error('Operation progress and elapsed-time elements must exist.');
+      const record = {
+        phase: wrap.dataset.phase || '', visible: visible(wrap), value: bar.getAttribute('value'), max: bar.max,
+        receivedBytes: Number(bar.dataset.receivedBytes || 0), totalBytes: Number(bar.dataset.totalBytes || 0),
+        label: document.getElementById(operation === 'load' ? 'load-progress-label' : 'progress-label').textContent.trim(),
+        elapsed: elapsed.textContent.trim(), elapsedVisible: visible(elapsed),
+        ready: document.getElementById('model-status').classList.contains('ready'),
+        resultsVisible: !document.getElementById('uncertainty-results').hidden,
+      };
+      const signature = JSON.stringify(record);
+      if (signature !== previous) { records.push({ at: performance.now(), ...record }); previous = signature; }
+    };
+    const observer = new MutationObserver(capture);
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true,
+      attributeFilter: ['value', 'max', 'data-phase', 'data-received-bytes', 'data-total-bytes', 'hidden', 'class'] });
+    window.__qaObservation = { observer, records, capture, scheduledBefore };
+    capture();
+  }, kind);
+}
+
+async function finishObservation(page, label) {
+  const proof = await page.evaluate(() => {
+    const observation = window.__qaObservation; observation.capture(); observation.observer.disconnect();
+    return { records: observation.records, timer: { ...window.__qaTimers, scheduledForOperation: window.__qaTimers.scheduled - observation.scheduledBefore } };
+  });
+  assert.equal(proof.timer.scheduledForOperation, 1, `${label}: one one-second elapsed timer is started.`);
+  assert.equal(proof.timer.peakActive, 1, `${label}: elapsed timers never overlap.`);
+  assert.equal(proof.timer.active, 0, `${label}: the elapsed timer stops when work stops.`);
+  const busy = proof.records.filter(record => record.visible);
+  assert.ok(busy.length > 0, `${label}: progress is visible while busy.`);
+  let previousElapsed = 0;
+  for (const record of busy) {
+    assert.equal(record.elapsedVisible, true, `${label}: elapsed time is visible while busy.`);
+    assert.match(record.elapsed, /\b\d+:[0-5]\d\b/, `${label}: elapsed time uses M:SS.`);
+    const [, minutes, seconds] = record.elapsed.match(/\b(\d+):([0-5]\d)\b/);
+    const elapsed = Number(minutes) * 60 + Number(seconds);
+    assert.ok(elapsed >= previousElapsed, `${label}: elapsed time never moves backward while busy.`);
+    assert.ok(Math.abs(elapsed - (record.at - busy[0].at) / 1000) < 2, `${label}: elapsed time follows the actual browser clock.`);
+    previousElapsed = elapsed;
+  }
+  return proof;
+}
+
+function verifyDownloadProgress(proof) {
+  const phased = proof.records.filter(record => ['download', 'verify', 'prepare', 'ready'].includes(record.phase));
+  for (const record of phased.filter(record => record.totalBytes === 0)) assert.equal(record.value, null, 'An unknown download total remains indeterminate.');
+  const records = phased.filter(record => record.totalBytes > 0);
+  const downloads = records.filter(record => record.phase === 'download' && record.receivedBytes > 0);
+  assert.ok(new Set(downloads.map(record => record.receivedBytes)).size >= 3, 'Several actual download byte updates are displayed.');
+  assert.ok(new Set(downloads.filter(record => record.value !== null).map(record => record.receivedBytes)).size >= 3, 'Known byte totals produce several determinate download updates.');
+  const total = records.at(-1).totalBytes;
+  assert.ok(Number.isSafeInteger(total) && total > 0, 'Published model bytes provide a cumulative download denominator.');
+  let received = 0;
+  for (const record of records) {
+    assert.equal(record.totalBytes, total, 'The cumulative model byte total stays fixed.');
+    assert.ok(Number.isSafeInteger(record.receivedBytes) && record.receivedBytes >= received && record.receivedBytes <= total, 'Received model bytes are cumulative, monotonic, and bounded.');
+    received = record.receivedBytes;
+    if (record.phase === 'download' && record.value !== null) {
+      assert.ok(Math.abs(Number(record.value) - 100 * record.receivedBytes / total) < 0.02, 'Determinate download percentage comes from received bytes.');
+      if (record.receivedBytes < total) assert.ok(Number(record.value) < 100, 'Download never reaches 100% before all model bytes arrive.');
+    }
+    if (['verify', 'prepare'].includes(record.phase)) assert.equal(record.value, null, `${record.phase} remains indeterminate.`);
+    if (record.phase !== 'ready') assert.equal(record.ready, false, 'A full download does not imply model readiness.');
+  }
+  for (const phase of ['verify', 'prepare']) assert.ok(records.some(record => record.phase === phase), `${phase} is reported separately from downloading.`);
+  const ready = records.find(record => record.phase === 'ready' && record.ready);
+  assert.ok(ready, 'Model load reports its ready phase.');
+  assert.equal(Number(ready.value), 100); assert.equal(ready.max, 100);
+  assert.equal(ready.receivedBytes, total, 'Ready retains the complete cumulative byte count.');
+  assert.equal(ready.ready, true, 'The final 100% state is backed by loaded model sessions.');
+}
+
+function verifyInferenceProgress(proof, passes = 50) {
+  const records = proof.records.filter(record => record.visible);
+  for (const phase of ['preprocess', 'features', 'predict', 'intervals']) assert.ok(records.some(record => record.phase === phase), `${phase} is observed during actual inference.`);
+  let completed = 0;
+  for (const record of records) {
+    if (record.phase === 'predict') {
+      assert.equal(record.max, passes, 'Prediction progress uses the requested pass count.');
+      assert.notEqual(record.value, null);
+      const value = Number(record.value);
+      assert.ok(Number.isInteger(value) && value >= completed && value <= passes, 'Only completed stochastic passes advance prediction progress.');
+      assert.match(record.label, new RegExp(`\\b${value}\\s*\\/\\s*${passes}\\b`), 'Prediction text includes the completed/total pass count.');
+      assert.match(record.label, /\d+(?:\.\d+)?\s*%/, 'Prediction text includes a percentage.');
+      const percentage = Number(record.label.match(/(\d+(?:\.\d+)?)\s*%/)[1]);
+      assert.ok(Math.abs(percentage - value / passes * 100) < 1, 'Prediction percentage matches the completed pass count.');
+      completed = value;
+    } else if (['preprocess', 'features', 'intervals'].includes(record.phase)) {
+      assert.equal(record.value, null, `${record.phase} is indeterminate and never shows premature completion.`);
+    }
+  }
+  assert.equal(completed, passes, 'All requested model passes are observed.');
+  assert.ok(new Set(records.filter(record => record.phase === 'predict' && Number(record.value) > 0 && Number(record.value) < passes).map(record => Number(record.value))).size >= 3, 'Several distinct intermediate pass counts are observed.');
+  assert.ok(new Set(records.map(record => record.elapsed)).size >= 2, 'Elapsed time advances during actual inference.');
+}
+
+async function verifyPaperMetadata(page) {
+  assert.equal(await page.locator('h1#paper-title').textContent(), PAPER_TITLE);
+  assert.equal(await page.locator('#paper-authors').textContent(), 'Authors: pending confirmation');
+  assert.equal(await page.locator('#paper-info > details').evaluate(node => !node.open), true, 'Paper and licensing details start collapsed.');
+  await page.locator('#paper-info > details > summary').click();
+  const text = await page.locator('#paper-info').textContent();
+  const licenses = await page.locator('#paper-info tbody tr').evaluateAll(nodes => nodes.map(node => [...node.querySelectorAll('td')].map(cell => cell.textContent.trim())));
+  assert.match(licenses.find(([material]) => /paper.*code.*model/i.test(material))?.[1] || '', /Reuse license not specified/i, 'Paper, code, and model reuse is explicitly unspecified.');
+  assert.match(licenses.find(([material]) => /example|sample/i.test(material))?.[1] || '', /Apache[\s\S]*2\.0/i, 'Public sample licensing is explicit.');
+  assert.match(licenses.find(([material]) => /runtime/i.test(material))?.[1] || '', /\bMIT\b/i, 'Runtime licensing is explicit.');
+  await page.locator('#paper-info > details > summary').click();
+  return text;
+}
+
+async function verifyIntervalDetails(page) {
+  assert.equal(await page.locator('#interval-details').evaluate(node => node.tagName === 'DETAILS' && !node.open), true, 'Detailed sampling information remains collapsed.');
+  assert.equal(await page.locator('#sampling-note').isVisible(), false, 'The long sampling paragraph is hidden until requested.');
+  assert.equal(await page.locator('#sample-count-details').isVisible(), false, 'Detailed sample counts are collapsed by default.');
+  await page.locator('#interval-details > summary').click();
+  assert.equal(await page.locator('#sampling-note').isVisible(), true);
+  assert.equal(await page.locator('#sample-count-details').isVisible(), true);
+  const counts = await page.locator('#sample-count-details').textContent();
+  assert.equal(counts.match(/4,096 valid/g)?.length, 3, 'Every distribution retains its detailed valid count.');
+  assert.equal(counts.match(/0 degenerate\s*\/\s*4,096 drawn/g)?.length, 3, 'Every distribution retains its detailed degeneracy and drawn counts.');
+  await page.locator('#interval-details > summary').click();
+}
 const started = Date.now();
-let server, browser;
+let server, browser, page;
 let url = process.env.SITE_URL;
 await mkdir(output, { recursive: true });
 
@@ -75,11 +231,15 @@ async function verifyAwaitingExample(page, item) {
   assert.equal(await page.locator('#interval-rows tr').count(), 0, `${item.id}: previous interval rows are cleared.`);
   assert.equal(await page.locator('#show-contours').isDisabled(), true);
   assert.equal(await page.locator('#restore-prediction').isVisible(), false);
+  assert.equal(await page.locator('#example-source-details').evaluate(node => node.tagName === 'DETAILS' && !node.open), true, `${item.id}: example attribution starts collapsed.`);
+  assert.equal(await page.locator('#example-credit').isVisible(), false, `${item.id}: source details do not expand the default interface.`);
+  await page.locator('#example-source-details > summary').click();
   assert.equal(await page.locator('#example-credit').isVisible(), true);
   const credit = await page.locator('#example-credit').textContent();
   assert.match(credit, /Apache[\s\S]*2\.0/i, `${item.id}: the displayed credit states the Apache 2.0 license.`);
   const creditLinks = await page.locator('#example-credit a[href]').evaluateAll(nodes => nodes.map(node => ({ text: node.textContent.trim(), href: node.href })));
   assert.ok(creditLinks.some(link => /^https:\/\//.test(link.href)), `${item.id}: the displayed credit links to its public source.`);
+  await page.locator('#example-source-details > summary').click();
 
   // Compare every decoded pixel, so an illustrative point, contour, or line on a
   // public image fails this check even if no corresponding DOM overlay exists.
@@ -148,8 +308,9 @@ try {
     return route.continue();
   });
   context.on('request', request => requests.push({ method: request.method(), url: request.url(), resourceType: request.resourceType() }));
-  const page = await context.newPage();
-  page.setDefaultTimeout(30 * 60 * 1000);
+  page = await context.newPage();
+  page.setDefaultTimeout(UI_TIMEOUT);
+  await instrumentOperationTimer(page);
   page.on('worker', worker => workerURLs.push(worker.url()));
   page.on('pageerror', error => { errors.push(error.message); console.error('[examples pageerror]', error.message); });
   page.on('console', message => { logs.push({ type: message.type(), text: message.text() }); if (message.type() === 'error') console.error('[examples console]', message.text()); });
@@ -162,6 +323,8 @@ try {
   assert.equal(await page.locator('#load-model').isDisabled(), false, 'The cloud-verified model is available for an explicit load.');
   assert.equal(requests.filter(request => isModelAsset(request.url)).length, 0, 'The initial page does not download the neural model or runtime.');
   assert.equal(workerURLs.length, 0, 'The initial page does not create an inference worker.');
+  assert.ok((await page.locator('#image-note').textContent()).includes('not model predictions'));
+  const paperAndLicenseInformation = await verifyPaperMetadata(page);
   await verifyPlainLayout(page, 'desktop-initial');
   await page.screenshot({ path: path.join(output, 'desktop-initial.png'), fullPage: true });
 
@@ -218,6 +381,7 @@ try {
   await page.screenshot({ path: path.join(output, 'mobile-initial.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
 
+  await observeOperation(page, 'load');
   const modelLoadStarted = Date.now();
   await page.locator('#load-model').click();
   const modelLoadBusyControls = await verifyBusyControls(page, 'model load');
@@ -225,8 +389,10 @@ try {
   await page.waitForFunction(() => {
     const node = document.getElementById('model-status');
     return node.classList.contains('ready') || node.classList.contains('error');
-  });
+  }, null, { timeout: MODEL_TIMEOUT });
   assert.equal(await page.locator('#model-status').evaluate(node => node.classList.contains('ready')), true, await page.locator('#model-status-text').textContent());
+  const modelLoadProgress = await finishObservation(page, 'model load');
+  verifyDownloadProgress(modelLoadProgress);
   assert.ok((await page.locator('#model-details').textContent()).includes('SHA-256'));
   assert.equal(workerURLs.filter(workerURL => /\/inference-worker\.mjs(?:\?|$)/.test(workerURL)).length, 1, 'One genuine inference worker is loaded explicitly.');
   const modelDownloadAndLoadSeconds = (Date.now() - modelLoadStarted) / 1000;
@@ -244,26 +410,32 @@ try {
     record.awaitingImmediatelyBeforePrediction = await verifyAwaitingExample(page, item);
     assert.equal(await page.locator('#predict').isDisabled(), false, `${record.id}: the explicitly loaded model is ready for this selected image.`);
     assert.equal(requests.filter(request => isModelAsset(request.url)).length, modelRequestsAfterLoad, 'Switching examples does not reload model files.');
+    await observeOperation(page, 'inference');
     const inferenceStarted = Date.now();
     await page.locator('#predict').click();
     record.busyControls = await verifyBusyControls(page, record.id);
     assert.equal(await page.locator('#cancel-predict').isVisible(), true);
     assert.equal(await page.locator('#progress-wrap').isVisible(), true);
     console.log(`Public-example QA: ${record.id}, 50 genuine stochastic passes on the GitHub cloud CPU.`);
-    await page.waitForFunction(() => document.getElementById('inference-progress').value >= 1 || document.getElementById('model-status').classList.contains('error'));
+    await page.waitForFunction(() => (document.getElementById('progress-wrap').dataset.phase === 'predict' && document.getElementById('inference-progress').value >= 1) || document.getElementById('model-status').classList.contains('error'), null, { timeout: MODEL_TIMEOUT });
     assert.equal(await page.locator('#model-status').evaluate(node => node.classList.contains('error')), false, await page.locator('#model-status-text').textContent());
     record.actualPassProgressObserved = await page.locator('#inference-progress').evaluate(node => node.value);
     assert.ok(record.actualPassProgressObserved >= 1);
-    await page.waitForFunction(() => !document.getElementById('uncertainty-results').hidden || document.getElementById('model-status').classList.contains('error'));
+    await page.waitForFunction(() => !document.getElementById('uncertainty-results').hidden || document.getElementById('model-status').classList.contains('error'), null, { timeout: MODEL_TIMEOUT });
     assert.equal(await page.locator('#model-status').evaluate(node => node.classList.contains('error')), false, await page.locator('#model-status-text').textContent());
+    record.inferenceProgress = await finishObservation(page, record.id);
+    verifyInferenceProgress(record.inferenceProgress);
     record.inferenceAndIntervalSamplingSeconds = (Date.now() - inferenceStarted) / 1000;
     record.finiteAngles = {};
     for (const angle of ['alpha', 'beta']) record.finiteAngles[angle] = finiteAngle(Number.parseFloat(await page.locator(`#${angle}-value`).textContent()), `${record.id}: ${angle} is a finite unsigned angle.`);
     assert.equal(await page.locator('#measurement-mode').textContent(), 'Model mean coordinates');
     assert.match(await page.locator('#uncertainty-badge').textContent(), /50 passes/);
     assert.match(await page.locator('#sampling-note').textContent(), /4,096/);
+    await verifyIntervalDetails(page);
     record.completedPasses = await page.locator('#inference-progress').evaluate(node => node.value);
     assert.equal(record.completedPasses, 50, `${record.id}: the run completes all 50 passes.`);
+    assert.equal(await page.locator('#progress-wrap').getAttribute('data-phase'), 'done');
+    assert.equal(await page.locator('#progress-wrap').isVisible(), false, `${record.id}: completion hides the computation progress bar.`);
     const rows = await page.locator('#interval-rows tr').evaluateAll(nodes => nodes.map(node => [...node.querySelectorAll('td')].map(cell => cell.textContent.trim())));
     assert.equal(rows.length, 3);
     record.intervals = rows.map((cells, rowIndex) => {
@@ -312,6 +484,7 @@ try {
     publicExamplesUnannotatedBeforePrediction: true, sampleChangesClearPreviousPrediction: true,
     imageUploadRequests: 0, remoteInferenceRequests: 0, allRequestOriginsRestrictedTo: allowedOrigin,
     publicImageRequests, workerURLs, modelLoadBusyControls, modelDownloadAndLoadSeconds,
+    modelLoadProgress, paperAndLicenseInformation,
     secondsIncludingInferenceAndInteractions: (Date.now() - started) / 1000,
     layoutChecks, examples, javascriptErrors: errors, externalRequestsBlocked: blockedRequests,
     requests, browserConsole: logs,
@@ -319,7 +492,8 @@ try {
   await writeFile(path.join(output, 'examples_validation.json'), JSON.stringify(proof, null, 2) + '\n');
   console.log(JSON.stringify(proof, null, 2));
 } catch (error) {
-  await writeFile(path.join(output, 'examples_failure.json'), JSON.stringify({ error: error.message, stack: error.stack, url, examples, layoutChecks, errors, blockedRequests, requests, logs }, null, 2) + '\n');
+  const operationProgress = page ? await page.evaluate(() => ({ records: window.__qaObservation?.records, timer: window.__qaTimers })).catch(() => null) : null;
+  await writeFile(path.join(output, 'examples_failure.json'), JSON.stringify({ error: error.message, stack: error.stack, operationProgress, url, examples, layoutChecks, errors, blockedRequests, requests, logs }, null, 2) + '\n');
   throw error;
 } finally {
   if (browser) await browser.close();
