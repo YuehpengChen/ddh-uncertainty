@@ -4,9 +4,11 @@ A browser-only research demonstration accompanying **Estimating Landmark and Ang
 
 Website: https://yuehpengchen.github.io/ddh-uncertainty/
 
-Verified deployment: [complete cloud browser run](https://github.com/YuehpengChen/ddh-uncertainty/actions/runs/40059061109), [downloadable models and validation reports](https://github.com/YuehpengChen/ddh-uncertainty/releases/tag/browser-v1).
+Verified plain-layout deployment with all three public examples: [complete cloud browser run](https://github.com/YuehpengChen/ddh-uncertainty/actions/runs/40070107732), [downloadable models and validation reports](https://github.com/YuehpengChen/ddh-uncertainty/releases/tag/browser-v1).
 
-The deployed URL passed a 50-pass hosted Chromium test with no image uploads or external inference requests. On that synthetic fixture, model download/loading took 9.8 seconds and prediction plus interval sampling took 60.8 seconds. These hosted-run measurements do not predict a visitor device's speed or clinical performance.
+All three public examples passed 50 genuine stochastic passes on the deployed URL, with complete 4,096-draw intervals, one explicit model load, no image uploads and no external inference requests. Original example pixels are displayed without placeholder landmarks before prediction.
+
+In the [initial synthetic-fixture run](https://github.com/YuehpengChen/ddh-uncertainty/actions/runs/40059061109), model download/loading took 9.8 seconds and prediction plus interval sampling took 60.8 seconds. These hosted-run measurements do not predict a visitor device's speed or clinical performance.
 
 ## What visitors can do
 
