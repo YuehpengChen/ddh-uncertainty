@@ -352,9 +352,11 @@ function finiteAngle(value, message) {
 
 async function verifyPlainLayout(page, name) {
   const result = await page.evaluate(() => {
-    const selectors = ['html', 'body', 'main', '.intro', '.workspace', '.controls-panel', '.uncertainty-panel'];
+    const selectors = ['html', 'body', 'main', '.paper-header', '.workspace', '.controls-panel', '.uncertainty-panel'];
     const surfaces = selectors.map(selector => {
-      const style = getComputedStyle(document.querySelector(selector));
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`Required layout surface is missing: ${selector}`);
+      const style = getComputedStyle(element);
       return { selector, backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage };
     });
     const heading = getComputedStyle(document.querySelector('h1'));
