@@ -82,6 +82,7 @@ function updateControls() {
   $('cancel-predict').hidden = !state.busy;
   $('restore-prediction').hidden = !state.prediction || !state.moved;
   $('show-contours').disabled = !state.prediction || state.moved;
+  $('contour-mode').disabled = !state.prediction || state.moved || !$('show-contours').checked;
   $('show-raters').disabled = state.uploaded;
   for (const input of $('coordinate-fields').querySelectorAll('input')) input.disabled = state.busy;
   for (const button of $('example-list').querySelectorAll('button')) {
@@ -151,13 +152,7 @@ function draw() {
   if (state.example && !state.prediction && !state.moved) return;
   context.save(); context.scale(sx, sy);
   const unit = Math.max(state.width, state.height) / 720;
-  if (state.prediction && !state.moved && $('show-contours').checked) {
-    state.prediction.points.forEach((p, k) => {
-      const contour = landmarkContour(state.prediction.total, k);
-      context.beginPath(); contour.forEach(([x, y], i) => i ? context.lineTo(p[0] + x, p[1] + y) : context.moveTo(p[0] + x, p[1] + y));
-      context.closePath(); context.fillStyle = '#d5dce033'; context.strokeStyle = '#e0e4e5bb'; context.lineWidth = 1 * unit; context.fill(); context.stroke();
-    });
-  }
+  const showContours = state.prediction && !state.moved && $('show-contours').checked;
   if ($('show-raters').checked && !state.uploaded) {
     const shifts = [[-7, -5], [5, -3], [-3, 6], [6, 4], [1, 0]];
     context.fillStyle = '#e2e2e2';
@@ -175,9 +170,19 @@ function draw() {
     context.setLineDash([6 * unit, 6 * unit]); context.strokeStyle = '#bad6ff99';
     context.beginPath(); context.moveTo(...b); context.lineTo(b[0] + (b[0] - a[0]) * .7, b[1] + (b[1] - a[1]) * .7); context.stroke(); context.setLineDash([]);
   }
+  if (showContours) {
+    const covariance = $('contour-mode').value === 'epistemic' ? state.prediction.epistemic : state.prediction.total;
+    state.prediction.points.forEach((p, k) => {
+      const contour = landmarkContour(covariance, k);
+      context.beginPath(); contour.forEach(([x, y], i) => i ? context.lineTo(p[0] + x, p[1] + y) : context.moveTo(p[0] + x, p[1] + y));
+      context.closePath(); context.fillStyle = '#d5dce033'; context.strokeStyle = '#e0e4e5bb'; context.lineWidth = 1 * unit; context.fill(); context.stroke();
+    });
+  }
   state.points.forEach(([x, y], index) => {
-    context.beginPath(); context.arc(x, y, 6 * unit, 0, Math.PI * 2); context.fillStyle = COLORS.points; context.fill();
-    context.strokeStyle = '#18232d'; context.lineWidth = 1.5 * unit; context.stroke();
+    // Identical small markers in both contour modes keep genuine center
+    // variation visible without enlarging or rescaling the covariance ellipse.
+    context.beginPath(); context.arc(x, y, (showContours ? 1.5 : 6) * unit, 0, Math.PI * 2); context.fillStyle = COLORS.points; context.fill();
+    context.strokeStyle = '#18232d'; context.lineWidth = (showContours ? .8 : 1.5) * unit; context.stroke();
     const label = LANDMARKS[index];
     context.font = `600 ${13 * unit}px Arial`; context.textBaseline = 'middle'; context.lineWidth = 3.4 * unit; context.strokeStyle = '#111820';
     const tx = Math.min(state.width - 29 * unit, Math.max(5 * unit, x + 11 * unit)), ty = Math.max(15 * unit, Math.min(state.height - 16 * unit, y - 12 * unit));
@@ -489,7 +494,8 @@ for (const button of document.querySelectorAll('[data-angle]')) button.addEventL
   for (const other of document.querySelectorAll('[data-angle]')) { const selected = other === button; other.classList.toggle('active', selected); other.setAttribute('aria-pressed', String(selected)); }
   renderPlot();
 });
-for (const id of ['show-lines', 'show-raters', 'show-contours']) $(id).addEventListener('change', draw);
+for (const id of ['show-lines', 'show-raters', 'contour-mode']) $(id).addEventListener('change', draw);
+$('show-contours').addEventListener('change', () => { updateControls(); draw(); });
 $('reset-image').addEventListener('click', resetImage);
 $('cancel-predict').addEventListener('click', () => cancelComputation());
 $('restore-prediction').addEventListener('click', () => { state.points = state.prediction.points.map(p => [...p]); state.moved = false; $('uncertainty-badge').textContent = `${state.prediction.passes} passes · ${state.prediction.samples.toLocaleString()} samples`; updateAngles(); updateControls(); draw(); });

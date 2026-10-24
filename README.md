@@ -19,11 +19,14 @@ In the [initial synthetic-fixture run](https://github.com/YuehpengChen/ddh-uncer
 - Follow actual model-download bytes, completed prediction passes, and elapsed time. Preparation and interval calculation use indeterminate progress rather than an estimated percentage.
 - Run 10, 20 or 50 genuine stochastic passes; 50 matches the study's inference setting.
 - Inspect the angle at the mean landmarks, marginal coordinate contours, and nominal central 90% angle intervals.
+- Switch coordinate contours between total uncertainty and variation of repeated prediction centers without rerunning the model or changing the angle results.
 - Compare a joint Gaussian with its diagonal-covariance counterpart while preserving the coordinate means and variances.
 - Drag landmarks to explore geometry without rerunning the model.
 - Inspect published model and validation records in the source repository.
 
 The plain interface keeps operation controls and results visible. Method, interval accounting, example provenance, and limitations are available in collapsed details. The header uses the manuscript's exact title. Authors remain pending confirmation because the current manuscript contains no author list.
+
+The layout follows the related [hip-ultrasound editing demonstration](https://yuehpengchen.github.io/hip-ultrasound-editing/): a centered paper heading, white Arial text layout, black navigation links, simple native-style controls, and a narrow control column. The single DDH image is capped at 720 pixels; the page switches to one column on small screens. Paper content and model behavior remain specific to this uncertainty demonstration.
 
 ```
 Download bytes -> Verify -> Prepare -> Completed passes -> Angle intervals
@@ -72,6 +75,8 @@ P1–P2 defines the baseline; P4–P3 defines the bony roof; P4–P5 defines the
 For T stochastic passes, the application averages the predicted diagonal conditional variance and adds the full covariance of the pass means, using denominator T. The mixture sampler chooses one shared pass for all ten coordinates in each of 4,096 draws. The controlled covariance comparison uses two Gaussians with identical means and diagonal variances and shared standard-normal samples. The finite mixture is displayed separately.
 
 Gray coordinate contours use each landmark's complete 2-by-2 block of total covariance, including its x-y covariance. They can be oblique; their orientation and axis lengths are computed from that block, not forced to the image axes. The conditional covariance predicted by this model is diagonal. Within-landmark x-y covariance comes from the shared stochastic-pass means, and adding conditional variance can make the total contour look more axis-aligned or circular. Cross-landmark covariance affects the joint angle distribution and is not represented in a single landmark's marginal ellipse.
+
+The Coordinate spread selector defaults to 總不確定性 (total uncertainty). 多次預測中心的變動 selects only the covariance of repeated prediction means. Both are centered at the same model mean, use radius 2 and identical original-pixel scaling, and retain the same point-marker size. Center-only ellipses are not magnified to match total ellipses. Small center markers and drawing contours above measurement lines keep the smaller ellipses visible. The switch redraws existing results only; it does not rerun inference, change landmark coordinates, or recalculate angle intervals. The choice remains available after restoring manually moved landmarks; it is disabled without a prediction, after manual edits, or while contours are hidden.
 
 Pure geometry tests cover positive/negative oblique ellipses, axis-aligned ellipses, circles, and original-pixel scaling. Cloud browser checks independently compare the actual canvas contour vertices against their genuine inference covariance using a Mahalanobis-radius equation; they do not alter the predictions or force a visible tilt.
 

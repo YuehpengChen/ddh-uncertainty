@@ -10,13 +10,13 @@
   <script type="module" src="app.mjs"></script>
 </head>
 <body>
-  <header class="site-header shell"><nav aria-label="Main navigation"><a href="#workspace">Demo</a><a href="#method">Details</a><a href="#paper-info">Paper &amp; licenses</a></nav></header>
-  <main>
-    <section class="intro shell">
+  <header class="paper-header shell">
       <h1 id="paper-title">Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound</h1>
       <p id="paper-authors">Authors: pending confirmation</p>
       <p class="small-copy">Browser-only demo · Images stay here · Research use only</p>
-    </section>
+      <nav aria-label="Main navigation"><a href="#workspace">Demo</a><a href="#method">Details</a><a href="#paper-info">Paper &amp; licenses</a></nav>
+  </header>
+  <main>
 
     <section class="workspace shell" id="workspace" aria-labelledby="workspace-title">
       <h2 id="workspace-title">Demo</h2>
@@ -52,6 +52,7 @@
           <label class="check-row"><input type="checkbox" id="show-lines" checked><span>Measurement lines</span></label>
           <label class="check-row"><input type="checkbox" id="show-raters"><span>Illustrative rater marks</span></label>
           <label class="check-row"><input type="checkbox" id="show-contours" checked disabled><span>Coordinate spread</span></label>
+          <div class="contour-options"><select id="contour-mode" aria-label="Coordinate spread component" aria-describedby="contour-note" disabled><option value="total" selected>總不確定性</option><option value="epistemic">多次預測中心的變動</option></select><p id="contour-note" class="tiny-copy">Same scale · No rerun</p></div>
           <button class="subtle-button" id="restore-prediction" hidden>Restore model landmarks</button>
         </aside>
       </div>
@@ -73,7 +74,7 @@
           <div class="distribution-switch" role="group" aria-label="Angle distribution"><button class="active" data-angle="alpha" aria-pressed="true">α angle</button><button data-angle="beta" aria-pressed="false">β angle</button></div>
           <svg id="distribution-plot" viewBox="0 0 960 250" role="img" aria-label="Angle distributions from model predictions"></svg>
           <div class="interval-table-wrap"><table class="interval-table"><thead><tr><th>Distribution</th><th>α · central 90%</th><th>β · central 90%</th></tr></thead><tbody id="interval-rows"></tbody></table></div>
-          <details id="interval-details"><summary>Interval details &amp; sample counts</summary><p class="tiny-copy" id="sample-count-details"></p><p class="tiny-copy" id="sampling-note"></p><p class="tiny-copy">Gray contours show marginal Gaussian spread at Mahalanobis radius 2; they do not establish calibrated coverage. Rater marks belong only to the synthetic illustration.</p></details>
+          <details id="interval-details"><summary>Interval details &amp; sample counts</summary><p class="tiny-copy" id="sample-count-details"></p><p class="tiny-copy" id="sampling-note"></p><p class="tiny-copy">Gray contours use the selected coordinate covariance at Mahalanobis radius 2. Total uncertainty includes average conditional variance and covariance of the repeated prediction centers. Center variation shows only the covariance of those centers. Both use the same mean and original-image pixel scale; neither establishes calibrated coverage. Switching contours leaves the angle distributions and intervals unchanged. Rater marks belong only to the synthetic illustration.</p></details>
         </div>
       </section>
     </section>

@@ -54,7 +54,7 @@ async function instrumentOperationTimer(page) {
 // needed to verify the displayed landmark contours are retained.
 async function instrumentContourGeometry(page) {
   await page.addInitScript(() => {
-    window.__qaWorkerResults = []; window.__qaContourPaths = [];
+    window.__qaWorkerResults = []; window.__qaWorkerRequests = []; window.__qaContourPaths = [];
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       constructor(...args) {
@@ -65,6 +65,10 @@ async function instrumentContourGeometry(page) {
           window.__qaWorkerResults.push(structuredClone({ id: event.data.id, points, total, epistemic, conditional, passes, samples }));
           window.__qaContourPaths = [];
         });
+      }
+      postMessage(message, ...args) {
+        window.__qaWorkerRequests.push({ type: message?.type, id: message?.id });
+        return super.postMessage(message, ...args);
       }
     };
     const prototype = CanvasRenderingContext2D.prototype, paths = new WeakMap();
@@ -86,12 +90,14 @@ async function instrumentContourGeometry(page) {
   });
 }
 
-async function verifyActualContourGeometry(page, label) {
+async function verifyActualContourGeometry(page, label, mode = 'total') {
   const observation = await page.evaluate(() => ({
     result: window.__qaWorkerResults.at(-1),
-    paths: window.__qaContourPaths.slice(0, 5),
+    paths: window.__qaContourPaths.slice(-5),
+    selectedMode: document.getElementById('contour-mode').value,
   }));
   const { result, paths } = observation;
+  assert.equal(observation.selectedMode, mode, `${label}: the selected coordinate-spread mode is explicit.`);
   assert.ok(result, `${label}: a genuine inference worker result was observed.`);
   assert.equal(result.points.length, 5);
   assert.equal(paths.length, 5, `${label}: all five actual landmark contour paths were rendered.`);
@@ -114,28 +120,84 @@ async function verifyActualContourGeometry(page, label) {
       const expected = between[row][column] + conditional[row][column];
       assert.ok(Math.abs(total[row][column] - expected) <= 1e-9 * Math.max(1, Math.abs(expected)), `${label} P${k + 1}: total retains between-pass covariance plus conditional diagonal variance.`);
     }
-    const [[xx, xy], [yx, yy]] = total, determinant = xx * yy - xy * yx;
-    assert.ok(xx > 0 && yy > 0 && determinant > 0, `${label} P${k + 1}: actual contour covariance is positive definite.`);
+    const selected = mode === 'epistemic' ? between : total;
+    const [[xx, xy], [yx, yy]] = selected, determinant = xx * yy - xy * yx;
+    const tolerance = 1e-8 * Math.max(1, Math.abs(xx), Math.abs(xy), Math.abs(yy));
+    assert.ok(xx >= -tolerance && yy >= -tolerance && determinant >= -tolerance * Math.max(1, xx, yy), `${label} P${k + 1}: the selected covariance is positive semidefinite.`);
     assert.ok(Math.abs(xy - yx) <= 1e-10 * Math.max(1, Math.abs(xy)), 'The observed covariance is symmetric.');
-    const errors = paths[k].map(([x, y]) => {
+    // Forty-eight equally spaced contour vertices have second moment
+    // radius^2 / 2 times the selected covariance. This independent check
+    // also covers a line or point produced by a rank-deficient covariance.
+    const offsets = paths[k].slice(0, -1).map(([x, y]) => [x - center[0], y - center[1]]);
+    const renderedCovariance = [[0, 0], [0, 0]], renderedCenterOffset = [0, 0];
+    for (const offset of offsets) for (let row = 0; row < 2; row++) {
+      renderedCenterOffset[row] += offset[row] / offsets.length;
+      for (let column = 0; column < 2; column++) renderedCovariance[row][column] += offset[row] * offset[column] / (offsets.length * 2);
+    }
+    assert.ok(renderedCenterOffset.every(value => Math.abs(value) < 1e-7), `${label} P${k + 1}: switching modes keeps the contour centered at the model mean.`);
+    let maximumCovarianceError = 0;
+    for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) maximumCovarianceError = Math.max(maximumCovarianceError, Math.abs(renderedCovariance[row][column] - selected[row][column]));
+    assert.ok(maximumCovarianceError < tolerance, `${label} P${k + 1}: the actual vertices retain the complete selected covariance and the same radius-2 original-pixel scale.`);
+    const fullRank = xx > 0 && yy > 0 && determinant > 1e-12 * xx * yy;
+    const errors = fullRank ? paths[k].map(([x, y]) => {
       const dx = x - center[0], dy = y - center[1];
       // Independent inverse-matrix formula: no reuse of landmarkContour's
       // eigenvectors, axis lengths, rotation, or point generation.
       const squaredMahalanobis = (yy * dx * dx - (xy + yx) * dx * dy + xx * dy * dy) / determinant;
       return Math.abs(squaredMahalanobis - 4);
-    });
-    const maximumMahalanobisError = Math.max(...errors);
-    assert.ok(maximumMahalanobisError < 1e-7, `${label} P${k + 1}: the actual rendered ellipse follows the full covariance, including xy, at radius 2.`);
+    }) : [];
+    const maximumMahalanobisError = fullRank ? Math.max(...errors) : null;
+    if (fullRank) assert.ok(maximumMahalanobisError < 1e-7, `${label} P${k + 1}: the actual rendered ellipse follows the full covariance, including xy, at radius 2.`);
     assert.ok(Math.hypot(paths[k][0][0] - paths[k].at(-1)[0], paths[k][0][1] - paths[k].at(-1)[1]) < 1e-8, `${label}: the contour closes.`);
     return {
       landmark: `P${k + 1}`, center: center.map(rounded),
       total: characteristics(total), conditional: characteristics(conditional),
       betweenPass: characteristics(between),
-      renderedVertices: paths[k].length, radius: 2,
-      maximumMahalanobisError: rounded(maximumMahalanobisError),
+      renderedVertices: paths[k].length, radius: 2, renderedCovariance: renderedCovariance.map(row => row.map(rounded)),
+      maximumCovarianceError: rounded(maximumCovarianceError),
+      maximumMahalanobisError: fullRank ? rounded(maximumMahalanobisError) : null,
     };
   });
-  return { observedResultId: result.id, passes: result.passes, actualRenderedCovarianceVerified: true, landmarks: diagnostics };
+  return { mode, observedResultId: result.id, passes: result.passes, actualRenderedCovarianceVerified: true, landmarks: diagnostics };
+}
+
+async function verifyContourModeSwitch(page, label) {
+  const control = page.locator('#contour-mode');
+  assert.equal(await control.isDisabled(), false, `${label}: a completed prediction enables the spread selector.`);
+  assert.deepEqual(await control.locator('option').evaluateAll(nodes => nodes.map(node => ({ value: node.value, label: node.textContent.trim() }))), [
+    { value: 'total', label: '總不確定性' }, { value: 'epistemic', label: '多次預測中心的變動' },
+  ]);
+  const snapshot = () => page.evaluate(() => ({
+    points: [...document.querySelectorAll('.coordinate-fields input')].map(node => node.value),
+    alpha: document.getElementById('alpha-value').textContent, beta: document.getElementById('beta-value').textContent,
+    intervals: document.getElementById('interval-rows').innerHTML, plot: document.getElementById('distribution-plot').innerHTML,
+    results: window.__qaWorkerResults.length, requests: structuredClone(window.__qaWorkerRequests),
+    pointsFromWorker: window.__qaWorkerResults.at(-1).points,
+  }));
+  const before = await snapshot(), networkRequestsBefore = requests.length;
+  assert.equal(await control.inputValue(), 'total');
+  const total = await verifyActualContourGeometry(page, `${label}: total`, 'total');
+  await page.screenshot({ path: path.join(output, `${label}-coordinate-spread-total.png`), fullPage: true });
+  const pathsBefore = await page.evaluate(() => window.__qaContourPaths.length);
+  await control.selectOption('epistemic');
+  assert.ok(await page.evaluate(previous => window.__qaContourPaths.length >= previous + 5, pathsBefore), `${label}: changing modes immediately redraws all five contours.`);
+  const epistemic = await verifyActualContourGeometry(page, `${label}: prediction-center variation`, 'epistemic');
+  await page.screenshot({ path: path.join(output, `${label}-coordinate-spread-epistemic.png`), fullPage: true });
+  assert.deepEqual(await snapshot(), before, `${label}: the selector does not change landmark positions, angles, interval calculations, or worker messages/results.`);
+  assert.equal(requests.length, networkRequestsBefore, `${label}: switching spread modes performs no network or model request.`);
+  await page.locator('#show-contours').uncheck();
+  assert.equal(await control.isDisabled(), true, `${label}: hiding coordinate spread disables its selector.`);
+  assert.equal(await control.inputValue(), 'epistemic', `${label}: hiding spread preserves the chosen mode.`);
+  await page.locator('#show-contours').check();
+  assert.equal(await control.isDisabled(), false);
+  assert.equal(await control.inputValue(), 'epistemic');
+  await verifyActualContourGeometry(page, `${label}: preserved prediction-center mode`, 'epistemic');
+  await control.selectOption('total');
+  await verifyActualContourGeometry(page, `${label}: restored total`, 'total');
+  assert.deepEqual(await snapshot(), before, `${label}: restoring total is also a display-only change.`);
+  assert.equal(requests.length, networkRequestsBefore);
+  return { total, epistemic, sameCentersAndPixelScale: true, anglesAndIntervalsUnchanged: true, inferenceWorkerMessagesUnchanged: true,
+    workerResultCount: before.results, workerRequestCount: before.requests.length, newNetworkRequests: 0, selectedModePreservedWhenHidden: true };
 }
 
 async function observeOperation(page, kind) {
@@ -322,6 +384,7 @@ async function verifyAwaitingExample(page, item) {
   assert.equal(await page.locator('#uncertainty-results').isVisible(), false, `${item.id}: changing the image clears the previous result.`);
   assert.equal(await page.locator('#interval-rows tr').count(), 0, `${item.id}: previous interval rows are cleared.`);
   assert.equal(await page.locator('#show-contours').isDisabled(), true);
+  assert.equal(await page.locator('#contour-mode').isDisabled(), true, `${item.id}: choosing a new image disables the spread selector until a genuine prediction is available.`);
   assert.equal(await page.locator('#restore-prediction').isVisible(), false);
   assert.equal(await page.locator('#example-source-details').evaluate(node => node.tagName === 'DETAILS' && !node.open), true, `${item.id}: example attribution starts collapsed.`);
   assert.equal(await page.locator('#example-credit').isVisible(), false, `${item.id}: source details do not expand the default interface.`);
@@ -416,6 +479,8 @@ try {
   assert.equal(await page.locator('#load-model').isDisabled(), false, 'The cloud-verified model is available for an explicit load.');
   assert.equal(requests.filter(request => isModelAsset(request.url)).length, 0, 'The initial page does not download the neural model or runtime.');
   assert.equal(workerURLs.length, 0, 'The initial page does not create an inference worker.');
+  assert.equal(await page.locator('#contour-mode').inputValue(), 'total', 'Total uncertainty is the default coordinate-spread mode.');
+  assert.equal(await page.locator('#contour-mode').isDisabled(), true);
   assert.ok((await page.locator('#image-note').textContent()).includes('not model predictions'));
   const paperAndLicenseInformation = await verifyPaperMetadata(page);
   assert.equal(await page.locator('.model-provenance, #download-model, #download-head, #download-manifest').count(), 0, 'The model-details and download disclosure is removed.');
@@ -524,6 +589,7 @@ try {
     for (const angle of ['alpha', 'beta']) record.finiteAngles[angle] = finiteAngle(Number.parseFloat(await page.locator(`#${angle}-value`).textContent()), `${record.id}: ${angle} is a finite unsigned angle.`);
     assert.equal(await page.locator('#measurement-mode').textContent(), 'Model mean coordinates');
     record.contourGeometry = await verifyActualContourGeometry(page, record.id);
+    record.contourModeSwitch = await verifyContourModeSwitch(page, record.id);
     assert.match(await page.locator('#uncertainty-badge').textContent(), /50 passes/);
     assert.match(await page.locator('#sampling-note').textContent(), /4,096/);
     await verifyIntervalDetails(page);

@@ -22,6 +22,11 @@ try {
   assert.equal(await page.locator('#predict').isDisabled(), true, 'Prediction requires explicit model load and a local image.');
   assert.equal(await page.locator('#image-source').textContent(), 'Demonstration image, not a patient scan');
   assert.equal(await page.locator('#uncertainty-results').isVisible(), false);
+  assert.equal(await page.locator('.paper-header').evaluate(node => getComputedStyle(node).textAlign), 'center', 'Paper header follows the centered reference-demo layout.');
+  assert.equal(await page.locator('#contour-mode').inputValue(), 'total');
+  assert.equal(await page.locator('#contour-mode').isDisabled(), true, 'Contour selection requires a genuine completed prediction.');
+  assert.deepEqual(await page.locator('#contour-mode option').allTextContents(), ['總不確定性', '多次預測中心的變動']);
+  assert.ok(await page.locator('#canvas-wrap').evaluate(node => node.getBoundingClientRect().width <= 720), 'A single image remains bounded rather than filling an entire large screen.');
   assert.ok((await page.locator('#image-note').textContent()).includes('not model predictions'));
   await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
   const originalAngles = [await page.locator('#alpha-value').textContent(), await page.locator('#beta-value').textContent()];
