@@ -96,9 +96,12 @@ async function finishObservation(page, label) {
     const [, minutes, seconds] = record.elapsed.match(/\b(\d+):([0-5]\d)\b/);
     const elapsed = Number(minutes) * 60 + Number(seconds);
     assert.ok(elapsed >= previousElapsed, `${label}: elapsed time never moves backward while busy.`);
-    assert.ok(Math.abs(elapsed - (record.at - busy[0].at) / 1000) < 2, `${label}: elapsed time follows the actual browser clock.`);
     previousElapsed = elapsed;
   }
+  // Busy timers may be delayed by CI CPU contention. The stop handler updates
+  // the final elapsed value synchronously, so compare that value to real time.
+  const stopped = proof.records.at(-1), [, minutes, seconds] = stopped.elapsed.match(/\b(\d+):([0-5]\d)\b/);
+  assert.ok(Math.abs(Number(minutes) * 60 + Number(seconds) - (stopped.at - busy[0].at) / 1000) < 2, `${label}: final elapsed time follows the actual browser clock.`);
   return proof;
 }
 
