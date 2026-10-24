@@ -187,8 +187,8 @@ $('image-file').addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file) return;
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 20 * 1024 * 1024) { say('Choose a PNG, JPEG or WebP image smaller than 20 MB.'); return; }
   try {
-    const image = await createImageBitmap(file);
-    if (image.width < 32 || image.height < 32 || image.width > 8192 || image.height > 8192) { image.close(); throw new Error('Image dimensions must be between 32 and 8192 pixels.'); }
+    const image = await createImageBitmap(file, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    if (image.width < 32 || image.height < 32 || image.width > 8192 || image.height > 8192 || image.width * image.height > 16000000) { image.close(); throw new Error('Image dimensions must be 32–8192 pixels per side and at most 16 megapixels in total.'); }
     if (state.busy) cancelComputation(false);
     if (state.image?.close) state.image.close();
     state.image = image; state.width = image.width; state.height = image.height; state.uploaded = true;
@@ -249,9 +249,11 @@ $('load-model').addEventListener('click', () => {
 
 $('predict').addEventListener('click', () => {
   if (!state.modelReady || !state.uploaded || state.busy) return;
-  const resized = document.createElement('canvas'); resized.width = 448; resized.height = 448;
-  const ctx = resized.getContext('2d', { willReadFrequently: true }); ctx.drawImage(state.image, 0, 0, 448, 448);
-  const image = ctx.getImageData(0, 0, 448, 448), passes = Number($('pass-count').value);
+  const source = document.createElement('canvas'); source.width = state.width; source.height = state.height;
+  const ctx = source.getContext('2d', { willReadFrequently: true }); ctx.drawImage(state.image, 0, 0);
+  // Send original decoded samples; the worker performs validated Pillow-style
+  // RGB8 resampling rather than browser-dependent Canvas downsampling.
+  const image = ctx.getImageData(0, 0, state.width, state.height), passes = Number($('pass-count').value);
   state.busy = true; state.sequence++; updateControls();
   $('progress-wrap').hidden = false; $('inference-progress').max = passes; $('inference-progress').value = 0;
   $('progress-label').textContent = 'Extracting image features…'; status('Running locally in this visitor’s browser…');
@@ -320,6 +322,7 @@ async function inspectManifest() {
     const response = await fetch(new URL('models/manifest.json', document.baseURI), { cache: 'no-store' });
     if (!response.ok) throw new Error(`Model manifest returned HTTP ${response.status}.`);
     const manifest = await response.json(); state.manifest = manifest;
+    if (manifest.dropout?.probability !== undefined) $('model-provenance-text').textContent = `The image backbone and normalization remain fixed. Predictor dropout uses ${manifest.dropout.sites || 26} explicit mask sites with probability ${manifest.dropout.probability}. The archived checkpoint omitted its training dropout rate; this value comes from the archived source default and remains an assumption. RGB8 resampling is checked against Pillow; browser file decoding, color profiles and orientation are separate steps. This demonstration has no established external clinical accuracy or interval calibration.`;
     if (manifest.repositoryURL && /^https:\/\/github\.com\//.test(manifest.repositoryURL)) $('repository-link').href = manifest.repositoryURL;
     if (manifest.status !== 'ready') { status('Model export and cloud validation are pending. Prediction is unavailable.'); $('model-details').textContent = manifest.message || 'The geometry workspace is available. It does not substitute for AI inference.'; updateControls(); return; }
     status('Published model available. Load it onto this device.');

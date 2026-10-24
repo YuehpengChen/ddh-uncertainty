@@ -6,9 +6,13 @@ in the private build workflow. No model inference runs on the author's Mac.
 
 The frozen Swin backbone runs once per selected image. The second graph uses
 the original Stage 2 predictor, learned codebook, and original mean/variance
-decoder. Its Boolean `stochastic` input controls genuine ONNX Dropout at all 26
-archived sites, including attention probability dropout and channel-wise
-modulator dropout. No synthetic landmark generator or substitute decoder is used.
+decoder. Its Boolean `stochastic` input enables explicit independent Bernoulli
+mask inputs at all 26 archived dropout sites, including attention probability
+dropout and channel-wise modulator dropout. Binary uint8 masks are generated
+fresh for each site and pass by the visitor browser. The graph applies exact
+inverse-keep-probability scaling. Native ONNX Dropout was rejected because the
+runtime removed its stochastic effects. No synthetic landmark generator or
+substitute decoder is used.
 
 All six BatchNorm modules use the saved training-only recalibrated statistics.
 The graph never adapts BatchNorm to a visitor's image. Conditional variances are

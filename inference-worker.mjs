@@ -1,4 +1,5 @@
 import { sampleAngleDistributions } from './geometry.mjs';
+import { opaqueRgbaToRgb, preprocessRgbPillow, IMAGENET_MEAN, IMAGENET_STD } from './validation/resize_pillow.mjs';
 
 // This worker evaluates models only after an explicit predict message.
 let ort, manifest, backbone, head, baseURL, loaded = false, running = false;
@@ -26,11 +27,18 @@ async function verifiedModel(description, name) {
 
 function validateManifest(value) {
   if (value.schemaVersion !== 1 || value.status !== 'ready') throw new Error('This model has not passed the published cloud checks.');
-  if (value.dropout?.stochastic !== true || value.dropout?.mechanism !== 'training_mode') throw new Error('The stochastic inference contract is unsupported.');
+  if (value.dropout?.stochastic !== true || value.dropout?.mechanism !== 'explicit_masks') throw new Error('The stochastic inference contract is unsupported. Native ONNX Dropout is not accepted.');
   if (value.input?.layout !== 'NCHW' || String(value.input.shape) !== '1,3,448,448') throw new Error('Unexpected model image input.');
   if (value.outputs?.mean?.coordinates !== 'normalized' || value.outputs?.variance?.parameterization !== 'variance') throw new Error('Unexpected coordinate or variance parameterization.');
   if (!value.features?.length || !value.models?.backbone || !value.models?.head) throw new Error('The model bundle is incomplete.');
   if (value.runtime?.provider !== 'wasm') throw new Error('This deployment does not specify the supported browser CPU runtime.');
+  const normalization = value.input.normalization;
+  if (normalization?.scale !== 255 || String(normalization.mean) !== String(IMAGENET_MEAN) || String(normalization.std) !== String(IMAGENET_STD)) throw new Error('The image normalization differs from the validated preprocessing pipeline.');
+  const masks = value.dropout.inputs?.filter(input => input.name !== 'stochastic');
+  if (!masks?.length || masks.length !== value.dropout.sites) throw new Error('The explicit dropout mask specification is incomplete.');
+  for (const mask of masks) {
+    if (mask.dtype !== 'uint8' || !Array.isArray(mask.shape) || !mask.shape.length || mask.shape.some(n => !Number.isSafeInteger(n) || n <= 0) || mask.shape.reduce((a, b) => a * b, 1) > 5000000 || !Number.isFinite(mask.probability) || mask.probability < 0 || mask.probability >= 1) throw new Error('An explicit dropout mask has invalid dimensions or probability.');
+  }
 }
 
 async function initialize(manifestURL) {
@@ -53,16 +61,28 @@ async function initialize(manifestURL) {
   notify({ type: 'status', message: 'Preparing browser CPU landmark decoder…' });
   head = await ort.InferenceSession.create(headBytes, options);
   if (!backbone.inputNames.includes(manifest.input.name) || !head.inputNames.includes('stochastic')) throw new Error('Loaded model input names do not match the manifest.');
+  for (const mask of manifest.dropout.inputs.filter(input => input.name !== 'stochastic')) if (!head.inputNames.includes(mask.name)) throw new Error(`The decoder is missing dropout mask input ${mask.name}.`);
   loaded = true; notify({ type: 'loaded', backend: 'wasm', stochastic: true });
 }
 
 function preprocess(image) {
-  if (image.width !== 448 || image.height !== 448 || image.data.length !== 448 * 448 * 4) throw new Error('The input must be a 448 × 448 RGBA image.');
-  const { mean, std, scale } = manifest.input.normalization;
-  if (mean?.length !== 3 || std?.length !== 3 || std.some(v => !(v > 0)) || !(scale > 0)) throw new Error('Image normalization parameters are invalid.');
-  const area = 448 * 448, data = new Float32Array(3 * area);
-  for (let pixel = 0; pixel < area; pixel++) for (let c = 0; c < 3; c++) data[c * area + pixel] = (image.data[4 * pixel + c] / scale - mean[c]) / std[c];
+  if (image.width <= 0 || image.height <= 0 || image.width * image.height > 16000000 || image.data.length !== image.width * image.height * 4) throw new Error('The decoded image exceeds the supported 16-megapixel limit.');
+  const rgb = opaqueRgbaToRgb(image.data, image.width, image.height);
+  const data = preprocessRgbPillow(rgb, image.width, image.height, 448);
   return new ort.Tensor('float32', data, [1, 3, 448, 448]);
+}
+
+function dropoutFeeds() {
+  const feeds = { stochastic: new ort.Tensor('bool', new Uint8Array([1]), []) };
+  for (const description of manifest.dropout.inputs) {
+    if (description.name === 'stochastic') continue;
+    const count = description.shape.reduce((a, b) => a * b, 1), mask = new Uint8Array(count);
+    // One independent Bernoulli draw per exported mask entry, freshly generated
+    // for every site and pass. Channel sharing is encoded by each mask's shape.
+    for (let i = 0; i < count; i++) mask[i] = Math.random() >= description.probability ? 1 : 0;
+    feeds[description.name] = new ort.Tensor('uint8', mask, description.shape);
+  }
+  return feeds;
 }
 
 function dispose(tensorMap) {
@@ -75,6 +95,7 @@ async function predict(message) {
   const { id, image, originalWidth: width, originalHeight: height, passes } = message;
   if (![10, 20, 50].includes(passes)) throw new Error('Choose 10, 20 or 50 stochastic passes.');
   if (!(width > 0 && height > 0 && width <= 8192 && height <= 8192)) throw new Error('Invalid original image dimensions.');
+  if (image.width !== width || image.height !== height) throw new Error('The image must retain its original dimensions before validated resampling.');
   running = true;
   let features, input;
   try {
@@ -83,8 +104,8 @@ async function predict(message) {
     features = await backbone.run({ [manifest.input.name]: input });
     const means = [], variances = [];
     for (let pass = 0; pass < passes; pass++) {
-      const stochastic = new ort.Tensor('bool', new Uint8Array([1]), []);
-      const feeds = { stochastic };
+      const masks = dropoutFeeds();
+      const feeds = { ...masks };
       for (const feature of manifest.features) {
         if (!features[feature.name]) throw new Error(`Missing image feature: ${feature.name}.`);
         feeds[feature.name] = features[feature.name];
@@ -97,7 +118,7 @@ async function predict(message) {
         if (mean?.length !== 10 || variance?.length !== 10) throw new Error('The decoder did not return five coordinate pairs and variances.');
         means.push(Array.from(mean, (v, i) => v * (i % 2 ? height : width)));
         variances.push(Array.from(variance, (v, i) => v * (i % 2 ? height * height : width * width)));
-      } finally { dispose(output); stochastic.dispose?.(); }
+      } finally { dispose(output); dispose(masks); }
       notify({ type: 'progress', id, completed: pass + 1, total: passes, message: `${pass + 1} / ${passes} stochastic passes completed` });
       // Allow message dispatch and visible progress; no simulated timing.
       await new Promise(resolve => setTimeout(resolve, 0));

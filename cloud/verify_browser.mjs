@@ -14,7 +14,7 @@ if (process.env.GITHUB_ACTIONS !== 'true' || !process.env.GITHUB_RUN_ID) {
 const root = path.resolve(process.argv[2] ?? 'public');
 const mime = {'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript',
   '.wasm':'application/wasm','.json':'application/json','.onnx':'application/octet-stream',
-  '.f32':'application/octet-stream'};
+  '.f32':'application/octet-stream','.u8':'application/octet-stream'};
 const pageHTML = `<!doctype html><meta charset="utf-8"><title>Cloud-only synthetic WASM validation</title>
 <main id="status">Verifying model in GitHub-hosted Chromium</main><script type="module">
 import * as ort from '/runtime/ort.min.mjs';
@@ -30,6 +30,12 @@ window.runValidation = async () => {
   const head = await ort.InferenceSession.create('/models/stage2_decoder.onnx', {executionProviders:['wasm']});
   const features = await encoder.run({image:input});
   const feeds = {...features, stochastic:new ort.Tensor('bool', new Uint8Array([0]), [])};
+  const maskSpecs = manifest.dropout.inputs;
+  if(manifest.dropout.mechanism!=='explicit_masks'||maskSpecs.length!==26) throw new Error('Incorrect explicit-mask contract.');
+  for(const spec of maskSpecs) {
+    const size = spec.shape.reduce((a,b)=>a*b,1);
+    feeds[spec.name] = new ort.Tensor('uint8',new Uint8Array(size).fill(1),spec.shape);
+  }
   const deterministic = await head.run(feeds);
   const mean = Array.from(deterministic.mean.data), variance = Array.from(deterministic.variance.data);
   const maxMeanError = Math.max(...mean.map((v,i)=>Math.abs(v-expected.mean[i])));
@@ -42,9 +48,26 @@ window.runValidation = async () => {
     throw new Error('Deterministic WASM outputs changed between identical calls.');
   }
   feeds.stochastic = new ort.Tensor('bool', new Uint8Array([1]), []);
+  const fixedMasks = new Uint8Array(await (await fetch('/models/synthetic_masks.u8')).arrayBuffer());
+  let offset=0;
+  for(const spec of maskSpecs) {
+    const size=spec.shape.reduce((a,b)=>a*b,1);
+    feeds[spec.name]=new ort.Tensor('uint8',fixedMasks.subarray(offset,offset+size),spec.shape);
+    offset+=size;
+  }
+  if(offset!==fixedMasks.length) throw new Error('Fixed-mask fixture has incorrect size.');
+  const masked = await head.run(feeds);
+  const fixedMaskMeanError=Math.max(...Array.from(masked.mean.data).map((v,i)=>Math.abs(v-expected.fixedMask.mean[i])));
+  const fixedMaskVarianceError=Math.max(...Array.from(masked.variance.data).map((v,i)=>Math.abs(v-expected.fixedMask.variance[i])));
+  if(fixedMaskMeanError>0.0001||fixedMaskVarianceError>0.000001) throw new Error('WASM/native fixed-mask stochastic parity failed.');
   const samples = [], conditionalVariances = [];
   const started = performance.now();
   for(let p=0;p<50;p++) {
+    for(const spec of maskSpecs) {
+      const size=spec.shape.reduce((a,b)=>a*b,1), values=new Uint8Array(size);
+      for(let j=0;j<size;j++) values[j]=Math.random()>=spec.probability?1:0;
+      feeds[spec.name]=new ort.Tensor('uint8',values,spec.shape);
+    }
     const out = await head.run(feeds);
     const mu = Array.from(out.mean.data), vv = Array.from(out.variance.data);
     if(!mu.every(Number.isFinite)||!vv.every(v=>Number.isFinite(v)&&v>0)) throw new Error('Invalid stochastic output.');
@@ -70,6 +93,8 @@ window.runValidation = async () => {
   return {status:'passed',execution:'GitHub Actions hosted Chromium, ONNX Runtime Web WASM',
     patientDataUsed:false,passes:50,finite:true,uniquePasses:unique,
     meanMaxAbsError:maxMeanError,varianceMaxAbsError:maxVarianceError,
+    fixedMaskNativeParity:{meanMaxAbsError:fixedMaskMeanError,varianceMaxAbsError:fixedMaskVarianceError},
+    dropoutMechanism:'explicit independent uint8 Bernoulli masks',maskBytesPerPass:offset,
     maxCoordinateVariance:Math.max(...spreads),frozenStateAfterMC:true,
     covarianceDenominator:50,P4VarianceNormalized:totalDiagonal.slice(6,8),
     totalVarianceFinite:true,seconds:(performance.now()-started)/1000,
