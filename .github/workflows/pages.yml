@@ -27,14 +27,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download browser-v1 --pattern browser-model-bundle.tar.gz --dir _bundle
+          gh release download browser-v1 --pattern browser-model-bundle-licensed.tar.gz --dir _bundle
+          node --input-type=module -e 'import{readFileSync}from"node:fs";import{createHash}from"node:crypto";const actual=createHash("sha256").update(readFileSync("_bundle/browser-model-bundle-licensed.tar.gz")).digest("hex");if(actual!=="33b0facd6ced2b7f5c928ca3992fd04e05e8bf61cecb6e7066baa97b026222b7")throw Error("Release archive checksum mismatch");'
           mkdir -p _site
-          tar -xzf _bundle/browser-model-bundle.tar.gz -C _site
+          tar -xzf _bundle/browser-model-bundle-licensed.tar.gz -C _site
           cp index.html style.css app.mjs geometry.mjs inference-worker.mjs _site/
           mkdir -p _site/validation
           cp validation/resize_pillow.mjs _site/validation/
           curl -fsSL https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.0/LICENSE --output _site/runtime/ONNX_RUNTIME_LICENSE
           curl -fsSL https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.0/ThirdPartyNotices.txt --output _site/runtime/ThirdPartyNotices.txt
+          node cloud/verify_static_bundle.mjs _site
       - name: Install cloud browser test runner
         run: |
           npm install --no-save playwright@1.56.1
