@@ -1,0 +1,47 @@
+{
+  "status": "public_research_documentation",
+  "purpose": "Identify evaluated artifacts without copying checkpoints or image lists.",
+  "artifacts": [
+    {
+      "artifact": "Stage 1",
+      "sha256": "7c102bdd725accd4edb3b6560537fd64f2aa3d31bd4bcc7cbb50bd686c8c8624",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Stage 2 full",
+      "sha256": "11ce7c399e9dc7d035d1d4975f963d1cfc6833e2b6282af90a87a3057652451a",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Stage 2: decoder trained from scratch",
+      "sha256": "77f6e944e9eb39847ab61c36510fb665229a9d3388ba3a34076006528786c67a",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Training image list",
+      "sha256": "eb85a2207976dfb7158970f22081fa8ea0b6f69daeebec474b6a0e220a5263cf",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Validation image list",
+      "sha256": "e4f328262ad02ec9af2a7437a5d781b963e0debd6a0334707c3155a69f23a6e6",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Evaluation code",
+      "sha256": "479037c33549df6ce3941947b55fc889bfab258d7a570c2aa9549341517daf10",
+      "included_in_package": false,
+      "source": "supplementary Table S2"
+    }
+  ],
+  "source": {
+    "file": "DDH_Supplement_Green_Revision_20261030.docx",
+    "sha256": "464becbfb245a282e6683b0ae1e561046f98d70c7d39ff1c074fe3236c4563c3"
+  },
+  "verification": "Digests transcribed from Table S2; corresponding binary artifacts were not rehashed during this documentation export."
+}

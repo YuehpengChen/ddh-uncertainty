@@ -1,0 +1,14 @@
+# TABLE S7 — NUMERICAL GEOMETRY CHECKS FOR THE FULL MODEL
+
+| Configuration | Count | Invalid | Min. segment length (px) |
+| --- | --- | --- | --- |
+| Average dropout prediction | 242 | 0 | 59.922 |
+| Average rater coordinates | 242 | 0 | 52.289 |
+| Deterministic prediction | 242 | 0 | 58.568 |
+| Mixture samples | 991,232 | 0 | 0.328 |
+| Individual annotations | 526 | 0 | 36.249 |
+| Diagonal Gaussian samples | 991,232 | 0 | 1.510 |
+| Full Gaussian samples | 991,232 | 0 | 0.967 |
+| Means from each dropout pass | 12,100 | 0 | 56.148 |
+
+Source: frozen supplementary Word document, body item 49. Values and confidence intervals are transcribed, not recalculated.

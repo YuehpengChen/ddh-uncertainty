@@ -1,8 +1,12 @@
 # DDH landmark and angle uncertainty
 
-A browser-only research demonstration accompanying **Estimating Landmark and Angle Uncertainty from Multiple Rater Annotations in Infant Hip Ultrasound**.
+A browser-only research demonstration accompanying **Propagating Landmark Covariance to Graf Angle Uncertainty in Infant Hip Ultrasound**.
 
 Website: https://yuehpengchen.github.io/ddh-uncertainty/
+
+Research materials: [configuration](research/config.yaml), [model SHA-256 identifiers](research/model_manifest.json), [technical note](research/docs/technical_note.pdf), [full aggregate results](research/docs/extended_experiments.md), and [executable analysis/tests](research/code/README.md). Start with the [research README](research/README.md).
+
+Authors: Yueh-Peng Chen, Po-Sen Hsu, Tzuo-Yau Fan, Kuo-Cheng Liu, Hsuan-Kai Kao, and Shih-Lin Wu.
 
 Verified reference-style deployment with measured download/pass progress, switchable full-covariance contours, and all three public examples: [complete cloud browser run](https://github.com/YuehpengChen/ddh-uncertainty/actions/runs/40084376464), [model artifacts and validation reports](https://github.com/YuehpengChen/ddh-uncertainty/releases/tag/browser-v1).
 
@@ -24,7 +28,7 @@ In the [initial synthetic-fixture run](https://github.com/YuehpengChen/ddh-uncer
 - Drag landmarks to explore geometry without rerunning the model.
 - Inspect published model and validation records in the source repository.
 
-The plain interface keeps operation controls and results visible. Method, interval accounting, example provenance, and limitations are available in collapsed details. The header uses the manuscript's exact title. Authors remain pending confirmation because the current manuscript contains no author list.
+The plain interface keeps operation controls and results visible. Method, interval accounting, example provenance, and limitations are available in collapsed details. The author list above follows the current manuscript.
 
 The layout follows the related [hip-ultrasound editing demonstration](https://yuehpengchen.github.io/hip-ultrasound-editing/): a centered paper heading, white Arial text layout, black navigation links, simple native-style controls, and a narrow control column. The single DDH image is capped at 720 pixels; the page switches to one column on small screens. Paper content and model behavior remain specific to this uncertainty demonstration.
 
@@ -39,7 +43,7 @@ The interface has no separate model-details/download disclosure or manual weight
 
 ## Paper and licensing
 
-The accompanying paper is a research manuscript. Author names and order remain to be confirmed; no publication status or DOI is assigned by this demo. No reuse license has been specified for the paper, demo code, or model. Model downloads are available without asserting an additional reuse grant. The SPJ example images retain Apache-2.0 terms, and ONNX Runtime Web retains its MIT license and third-party notices.
+The accompanying paper is a research manuscript. No journal acceptance or DOI is assigned by this demo. No reuse license has been specified for the paper, demo code, or model. Model downloads are available without asserting an additional reuse grant. The SPJ example images retain Apache-2.0 terms, and ONNX Runtime Web retains its MIT license and third-party notices.
 
 The initial illustration and its landmarks are synthetic and are explicitly labeled as explanatory material. They are not a patient case or an AI prediction. Selecting a public example replaces the illustration with a real, unchanged source image and clears the previous prediction. No placeholder landmarks or angles appear on a public example until the visitor requests a prediction or explicitly edits manual coordinates.
 

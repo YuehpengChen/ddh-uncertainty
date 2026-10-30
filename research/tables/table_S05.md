@@ -1,0 +1,10 @@
+# TABLE S5 — GAUSSIAN COORDINATE COVERAGE AND MIXTURE LOG SCORE
+
+| Model | Target | Gaussian 95% coverage (%) | Joint mixture NLL |
+| --- | --- | --- | --- |
+| Full model | Average rater coordinates | 96.9 [96.1, 97.7] | 3.219 [3.171, 3.277] |
+| Full model | Individual annotations | 90.3 [89.2, 91.4] | 3.582 [3.489, 3.710] |
+| Comparator | Average rater coordinates | 88.0 [86.6, 89.5] | 3.488 [3.388, 3.607] |
+| Comparator | Individual annotations | 78.4 [76.9, 79.9] | 4.272 [4.048, 4.572] |
+
+Source: frozen supplementary Word document, body item 37. Values and confidence intervals are transcribed, not recalculated.

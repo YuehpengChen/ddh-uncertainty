@@ -1,0 +1,11 @@
+# TABLE S10 — BASELINE SUMMARY RESULTS
+
+| Model | Images | MRE (px) | $\alpha $ MAE (°) | $\beta $ MAE (°) | $\alpha $-category agreement (%) |
+| --- | --- | --- | --- | --- | --- |
+| UNet | 242 | 7.73 | 2.61 | 4.19 | 85.1 |
+| TGCN | 242 | 13.87 | 4.44 | 5.54 | 70.2 |
+| Global | 242 | 8.38 | 3.14 | 4.83 | 79.3 |
+| TaSoLaR | 241 | 16.70 | 7.05 | 5.14 | 46.1 |
+| CircleNet | 242 | — | — | — | 82.2 |
+
+Source: frozen supplementary Word document, body item 69. Values and confidence intervals are transcribed, not recalculated.

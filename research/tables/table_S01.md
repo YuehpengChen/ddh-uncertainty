@@ -1,0 +1,24 @@
+# TABLE S1 — ARCHITECTURE AND OPTIMIZATION INFORMATION
+
+| Item | Value |
+| --- | --- |
+| Input / backbone | $448 \times  448$ / Swin Tiny |
+| Latent representation | $12$ tokens; dimension $64$; $256$ codes |
+| Encoder / decoder | $8$ Mixer blocks, width $384$ / $3$ blocks, width $256$ |
+| Stage 1 optimizer | AdamW; batch $44$; initial LR $0.0003$; weight decay $0.005$ |
+| Stage 1 schedule | Budget $500$ epochs; selected epoch 152 |
+| Stage 1 transition | Continuous warm-up; quantization transition epochs $40$–$100$; final quantization weight $4$ |
+| Stage 1 variance | Log variance clamp $[-14, 4]$; edge variance offset $0.000001$ |
+| Stage 2 architecture | Width $192$; $6$ heads; $4$ decoder layers |
+| Stage 2 optimizer | Initial LR $0.0002$; weight decay $0.01$; Adam $betas$ $0.9$/$0.999$ |
+| Stage 2 schedule | Cosine, ${T}_{\max }$ $400$, minimum LR $0.000001$; selected epoch 386 |
+| Evaluation dropout | $0.3$ |
+| Stage 2 training batch | Full: 60; comparator: 4 |
+| Label smoothing / coordinate loss | $0.15$ / $Smooth-L1 beta 2$ |
+| Stage 2 initial loss weights | Token / point / angle: 1 / 5 / 2 |
+| Selection: decoder trained from scratch | Epoch 147 |
+| Evaluation BatchNorm estimation | 2,180 training images; 545 batches of 4 |
+| Evaluation software | Python 3.12.14; PyTorch 2.8.0; torchvision 0.23.0; timm 1.0.19 |
+| Dropout evaluation | $50$ dropout predictions/image |
+
+Source: frozen supplementary Word document, body item 7. Values and confidence intervals are transcribed, not recalculated.

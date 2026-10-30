@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "runtime": {"python": "3.12.14", "numpy": "2.3.5", "node": "24.19.0"},
+  "tests": [
+    {"command": "python3 -B -m unittest discover -s code/tests -p 'test_analysis.py' -v", "passed": 17, "failed": 0, "inputs": "synthetic coordinates only"},
+    {"command": "node --test code/tests/test_geometry.mjs", "passed": 16, "failed": 0, "inputs": "synthetic coordinates and covariance matrices only"}
+  ],
+  "cli_checks": [
+    {"input": "code/fixtures/synthetic_predictions.json", "output": "code/example_output/json", "status": "PASS", "n_images": 24, "n_calibration": 12, "n_assessment": 12, "bootstrap_resamples": 2000},
+    {"input": ["code/fixtures/synthetic_predictions.npz", "code/fixtures/synthetic_uncertainty.npz", "code/fixtures/synthetic_partitions.csv"], "output": "code/example_output/npz", "status": "PASS", "n_images": 24, "n_calibration": 12, "n_assessment": 12, "bootstrap_resamples": 2000}
+  ],
+  "json_npz_scale_and_interval_metric_agreement": true,
+  "jacobian_verified_by_central_differences": true,
+  "mixture_covariance_divisor_T_verified": true,
+  "image_balanced_coverage_verified": true,
+  "assessment_outcomes_do_not_affect_fitted_coefficients": true,
+  "interval_midpoints_preserved_and_endpoints_not_clipped": true,
+  "total_covariance_shape_checked_before_numeric_comparison": true,
+  "research_input_data_used": false,
+  "research_results_numerically_reproduced": false,
+  "model_training_or_image_inference_run": false,
+  "scope": "Execution, arithmetic, schema/cache conversion, and invariance tests. These checks do not validate clinical performance or historical training hyperparameters."
+}

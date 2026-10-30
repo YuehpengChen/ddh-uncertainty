@@ -1,0 +1,33 @@
+{
+  "file": "docs/technical_note.pdf",
+  "pdf_sha256": "677a400718cc0e9ef1a6e06461a9074eb16ace06149e57679f727d473ad42aa1",
+  "pdf_bytes": 261216,
+  "pages": 8,
+  "status": "PASS",
+  "source": "DDH_Supplement_Green_Revision_20261030.docx",
+  "source_sha256": "464becbfb245a282e6683b0ae1e561046f98d70c7d39ff1c074fe3236c4563c3",
+  "source_sections": ["S14", "S15"],
+  "source_body_range": {"start": 141, "stop_exclusive": 215},
+  "source_paragraphs_preserved": 74,
+  "native_math_objects_preserved": 342,
+  "native_math_canonical_bytes_unchanged": true,
+  "minimum_direct_source_font_pt": 10,
+  "comment_anchors_remaining_in_conversion_source": 0,
+  "author_queries_visible_on_cover": true,
+  "full_source_cross_reference_numbering_retained": true,
+  "unpublished_author_review_not_TMI_supplement": true,
+  "page_reviews": [
+    {"page": 1, "scope": "Review title, source hash and author questions", "result": "PASS"},
+    {"page": 2, "scope": "Symbols, coordinate normalization and predictive moments", "result": "PASS"},
+    {"page": 3, "scope": "Angle/coverage definitions and S7", "result": "PASS"},
+    {"page": 4, "scope": "S8-S9 transformations and derivatives", "result": "PASS"},
+    {"page": 5, "scope": "S10-S12 translation, intervals and sampling", "result": "PASS"},
+    {"page": 6, "scope": "Evaluation definitions and S13-S14 objectives", "result": "PASS"},
+    {"page": 7, "scope": "S15-S18 objectives and piecewise loss", "result": "PASS"},
+    {"page": 8, "scope": "S19-S21 weights, circular angles and schedule", "result": "PASS"}
+  ],
+  "pdf_text_replacement_characters": 0,
+  "pdf_image_objects": 0,
+  "conversion_source_docx_included_in_bundle": false,
+  "main_manuscript_pdf_created_by_this_export": false
+}

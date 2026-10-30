@@ -1,0 +1,784 @@
+{
+  "status": "public_research_documentation",
+  "sources": {
+    "main": {
+      "file": "DDH_Main_Green_Revision_20261030.docx",
+      "sha256": "cf2087c46aa68c4ae3e4ee8b373e430edc04f754647a89b131b97f72c05278aa"
+    },
+    "supplement": {
+      "file": "DDH_Supplement_Green_Revision_20261030.docx",
+      "sha256": "464becbfb245a282e6683b0ae1e561046f98d70c7d39ff1c074fe3236c4563c3"
+    }
+  },
+  "counts": {
+    "files_excluding_manifest": 76,
+    "tables": 17,
+    "table_csv_files": 17,
+    "table_markdown_files": 17,
+    "finished_figures": 6,
+    "figure_asset_files": 12,
+    "model_or_source_identifiers": 6,
+    "shared_references": 37
+  },
+  "table_inventory": [
+    {
+      "id": "S1",
+      "caption": "TABLE S1\nARCHITECTURE AND OPTIMIZATION INFORMATION",
+      "body_index": 7,
+      "rows_including_header": 19,
+      "columns": 2,
+      "csv": "tables/table_S01.csv",
+      "markdown": "tables/table_S01.md"
+    },
+    {
+      "id": "S2",
+      "caption": "TABLE S2\nSHA-256 IDENTIFIERS FOR MODELS AND EVALUATION FILES",
+      "body_index": 11,
+      "rows_including_header": 7,
+      "columns": 2,
+      "csv": "tables/table_S02.csv",
+      "markdown": "tables/table_S02.md"
+    },
+    {
+      "id": "S3",
+      "caption": "TABLE S3\nDESCRIPTIVE INTER-RATER LANDMARK DISAGREEMENT",
+      "body_index": 24,
+      "rows_including_header": 6,
+      "columns": 3,
+      "csv": "tables/table_S03.csv",
+      "markdown": "tables/table_S03.md"
+    },
+    {
+      "id": "S4",
+      "caption": "TABLE S4\nDETERMINISTIC IMAGE-PERTURBATION RESULTS",
+      "body_index": 30,
+      "rows_including_header": 11,
+      "columns": 6,
+      "csv": "tables/table_S04.csv",
+      "markdown": "tables/table_S04.md"
+    },
+    {
+      "id": "S5",
+      "caption": "TABLE S5\nGAUSSIAN COORDINATE COVERAGE AND MIXTURE LOG SCORE",
+      "body_index": 37,
+      "rows_including_header": 5,
+      "columns": 4,
+      "csv": "tables/table_S05.csv",
+      "markdown": "tables/table_S05.md"
+    },
+    {
+      "id": "S6",
+      "caption": "TABLE S6\nANGLE SD DIFFERENCES: FULL MINUS DIAGONAL COVARIANCE",
+      "body_index": 44,
+      "rows_including_header": 7,
+      "columns": 3,
+      "csv": "tables/table_S06.csv",
+      "markdown": "tables/table_S06.md"
+    },
+    {
+      "id": "S7",
+      "caption": "TABLE S7\nNUMERICAL GEOMETRY CHECKS FOR THE FULL MODEL",
+      "body_index": 49,
+      "rows_including_header": 9,
+      "columns": 4,
+      "csv": "tables/table_S07.csv",
+      "markdown": "tables/table_S07.md"
+    },
+    {
+      "id": "S8",
+      "caption": "TABLE S8\nANGLE-ERROR DETECTION AND ERROR IN RETAINED IMAGES",
+      "body_index": 57,
+      "rows_including_header": 5,
+      "columns": 4,
+      "csv": "tables/table_S08.csv",
+      "markdown": "tables/table_S08.md"
+    },
+    {
+      "id": "S9",
+      "caption": "TABLE S9\nCHANGES WITH THE NUMBER OF DROPOUT PREDICTIONS",
+      "body_index": 63,
+      "rows_including_header": 4,
+      "columns": 4,
+      "csv": "tables/table_S09.csv",
+      "markdown": "tables/table_S09.md"
+    },
+    {
+      "id": "S10",
+      "caption": "TABLE S10\nBASELINE SUMMARY RESULTS",
+      "body_index": 69,
+      "rows_including_header": 6,
+      "columns": 6,
+      "csv": "tables/table_S10.csv",
+      "markdown": "tables/table_S10.md"
+    },
+    {
+      "id": "S11",
+      "caption": "TABLE S11\nMETHOD REPRESENTATIONS",
+      "body_index": 84,
+      "rows_including_header": 5,
+      "columns": 2,
+      "csv": "tables/table_S11.csv",
+      "markdown": "tables/table_S11.md"
+    },
+    {
+      "id": "S12",
+      "caption": "TABLE S12\nCLEAN INTERNAL-VALIDATION PERFORMANCE",
+      "body_index": 87,
+      "rows_including_header": 5,
+      "columns": 7,
+      "csv": "tables/table_S12.csv",
+      "markdown": "tables/table_S12.md"
+    },
+    {
+      "id": "S13",
+      "caption": "TABLE S13\nREPRODUCTION OF RATER DIFFERENCES AND CODE SELECTION",
+      "body_index": 126,
+      "rows_including_header": 7,
+      "columns": 5,
+      "csv": "tables/table_S13.csv",
+      "markdown": "tables/table_S13.md"
+    },
+    {
+      "id": "S14",
+      "caption": "TABLE S14\nRECONSTRUCTION LOSS AGAINST RATER ANNOTATIONS",
+      "body_index": 129,
+      "rows_including_header": 7,
+      "columns": 5,
+      "csv": "tables/table_S14.csv",
+      "markdown": "tables/table_S14.md"
+    },
+    {
+      "id": "S15",
+      "caption": "TABLE S15\nRATER-COUNT SUBGROUPS",
+      "body_index": 134,
+      "rows_including_header": 5,
+      "columns": 5,
+      "csv": "tables/table_S15.csv",
+      "markdown": "tables/table_S15.md"
+    },
+    {
+      "id": "S16",
+      "caption": "TABLE S16\nSTAGE 1 INPUT SELECTION SUMMARY",
+      "body_index": 138,
+      "rows_including_header": 6,
+      "columns": 3,
+      "csv": "tables/table_S16.csv",
+      "markdown": "tables/table_S16.md"
+    },
+    {
+      "id": "S17",
+      "caption": "TABLE S17\nCALIBRATION AND ASSESSMENT INTERVAL RESULTS",
+      "body_index": 219,
+      "rows_including_header": 13,
+      "columns": 6,
+      "csv": "tables/table_S17.csv",
+      "markdown": "tables/table_S17.md"
+    }
+  ],
+  "figure_inventory": [
+    {
+      "figure": "supplement Figure S1",
+      "file": "figures/supplement_fig_S1.png",
+      "sha256": "4dfa3c382f67ba86a057be84bc00464280ef0130bdb6fb00de85c4fc71c48395",
+      "bytes": 66064,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image1.png",
+      "drawing_body_index": 89,
+      "caption_body_index": 90,
+      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1–P2 defines the baseline; P4–P3 and P4–P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31° and 5.71°, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S1",
+      "file": "figures/supplement_fig_S1.svg",
+      "sha256": "b529cf0ca023740e9530c537945afc077e66df27e0a826f787ec68824a5742f3",
+      "bytes": 16629,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image2.svg",
+      "drawing_body_index": 89,
+      "caption_body_index": 90,
+      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1–P2 defines the baseline; P4–P3 and P4–P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31° and 5.71°, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S2",
+      "file": "figures/supplement_fig_S2.png",
+      "sha256": "1402e4fd3a5efce90c696fc838e8e650f0a947c6c71d6556776671640c8e0721",
+      "bytes": 124508,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image3.png",
+      "drawing_body_index": 91,
+      "caption_body_index": 92,
+      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C–E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C–E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S2",
+      "file": "figures/supplement_fig_S2.svg",
+      "sha256": "1fb2b94d9e92f4eb599d90e52bcef60fcce93015db0ef0865d7e8e60954c8723",
+      "bytes": 171916,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image4.svg",
+      "drawing_body_index": 91,
+      "caption_body_index": 92,
+      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C–E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C–E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S3",
+      "file": "figures/supplement_fig_S3.png",
+      "sha256": "3c34d03b93942572a85bf6edeb1b644ec31623471ae31c8cedb6840464414b8f",
+      "bytes": 54234,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image5.png",
+      "drawing_body_index": 93,
+      "caption_body_index": 94,
+      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1–P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S3",
+      "file": "figures/supplement_fig_S3.svg",
+      "sha256": "5b8ca0077c6d20cc87206a4005755666dafcffc1c682886518a5dd8137390e23",
+      "bytes": 24434,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image6.svg",
+      "drawing_body_index": 93,
+      "caption_body_index": 94,
+      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1–P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S4",
+      "file": "figures/supplement_fig_S4.png",
+      "sha256": "f60c4d7ed280d6f13cf343f3391877b1cca204920910a7a0743b71a2d54e2ebc",
+      "bytes": 73571,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image7.png",
+      "drawing_body_index": 100,
+      "caption_body_index": 101,
+      "caption": "Fig. S4. Angle error among retained images in 242 internal-evaluation images. (A, B) Alpha/beta MAE after retaining images with the lowest scores: total angular SD, SD from variation between dropout predictions, SD from uncertainty predicted within each dropout pass, or average landmark spread. Each curve contains every retained count from 121 to 242. The expected MAE under random retention equals the all-image MAE; it is not estimated from one random subsample. The oracle ranks images by their observed reference errors and is unavailable in prospective selection (shown only as a retrospective lower bound). Whiskers on Total and Landmark spread show 95% image-bootstrap CIs from 10,000 reranked resamples at 121, 194, and 242 images (50.0%, 80.2%, and 100%). All methods use identical predictions and reference errors. Coincident full-retention estimates represent the same images.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "supplement Figure S4",
+      "file": "figures/supplement_fig_S4.svg",
+      "sha256": "3ba35d59e739ddb0456652a52913e455a315095dc4c935c024bcb365f414ce1c",
+      "bytes": 101328,
+      "source_docx": "DDH_Supplement_Green_Revision_20261030.docx",
+      "source_member": "word/media/image8.svg",
+      "drawing_body_index": 100,
+      "caption_body_index": 101,
+      "caption": "Fig. S4. Angle error among retained images in 242 internal-evaluation images. (A, B) Alpha/beta MAE after retaining images with the lowest scores: total angular SD, SD from variation between dropout predictions, SD from uncertainty predicted within each dropout pass, or average landmark spread. Each curve contains every retained count from 121 to 242. The expected MAE under random retention equals the all-image MAE; it is not estimated from one random subsample. The oracle ranks images by their observed reference errors and is unavailable in prospective selection (shown only as a retrospective lower bound). Whiskers on Total and Landmark spread show 95% image-bootstrap CIs from 10,000 reranked resamples at 121, 194, and 242 images (50.0%, 80.2%, and 100%). All methods use identical predictions and reference errors. Coincident full-retention estimates represent the same images.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "main Figure 4",
+      "file": "figures/main_fig_4.png",
+      "sha256": "d18e28d6ac49c35f23c819bbf1be4dfbd262f9739f37992db4ace942832301f7",
+      "bytes": 683060,
+      "source_docx": "DDH_Main_Green_Revision_20261030.docx",
+      "source_member": "word/media/ddh_image7.png",
+      "drawing_body_index": 104,
+      "caption_body_index": 105,
+      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B–F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "main Figure 4",
+      "file": "figures/main_fig_4.svg",
+      "sha256": "cd5debf0927d6c0692e5a9a0e1d837e6b02b4c850202177f349cdbf61bb60369",
+      "bytes": 226478,
+      "source_docx": "DDH_Main_Green_Revision_20261030.docx",
+      "source_member": "word/media/ddh_image8.svg",
+      "drawing_body_index": 104,
+      "caption_body_index": 105,
+      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B–F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "main Figure 7",
+      "file": "figures/main_fig_7.png",
+      "sha256": "d3389578528760d6ce2562ff6eefdae94c5be5ae944b2f4c8f0580ff7c73c91b",
+      "bytes": 316985,
+      "source_docx": "DDH_Main_Green_Revision_20261030.docx",
+      "source_member": "word/media/ddh_image13.png",
+      "drawing_body_index": 133,
+      "caption_body_index": 134,
+      "caption": "Fig. 7. Sensitivity to the number of dropout predictions. Estimates from the first 10, 20 and 30 passes are compared with the complete 50-pass sequence for 242 images. (A) RMS change in coordinate means, in original pixels. (B, C) Absolute changes in total alpha- and beta-angle standard deviations. (D, E) Changes in the dropout component, expressed relative to its 50-pass value. Curves summarize the mean, 95th percentile and maximum across images. All estimates share the same prediction sequence; maxima can vary nonmonotonically.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    },
+    {
+      "figure": "main Figure 7",
+      "file": "figures/main_fig_7.svg",
+      "sha256": "5d95fce0eb541150f348b0e2f64b40e455e957e924947e04cbca5d27f17429a6",
+      "bytes": 18515,
+      "source_docx": "DDH_Main_Green_Revision_20261030.docx",
+      "source_member": "word/media/ddh_image14.svg",
+      "drawing_body_index": 133,
+      "caption_body_index": 134,
+      "caption": "Fig. 7. Sensitivity to the number of dropout predictions. Estimates from the first 10, 20 and 30 passes are compared with the complete 50-pass sequence for 242 images. (A) RMS change in coordinate means, in original pixels. (B, C) Absolute changes in total alpha- and beta-angle standard deviations. (D, E) Changes in the dropout component, expressed relative to its 50-pass value. Curves summarize the mean, 95th percentile and maximum across images. All estimates share the same prediction sequence; maxima can vary nonmonotonically.",
+      "content_type": "finished_manuscript_figure_composite_not_raw_data"
+    }
+  ],
+  "executable_analysis": {
+    "entrypoint": "code/eval_saved_predictions.py",
+    "documentation": "code/README.md",
+    "provenance": "code/provenance.json",
+    "verification": "code/verification.json",
+    "synthetic_fixtures_only": true,
+    "model_training_or_image_inference_included": false,
+    "study_numerical_results_reproduced": false
+  },
+  "technical_note_pdf": {
+    "included": true,
+    "file": "docs/technical_note.pdf",
+    "source_sections": [
+      "S14",
+      "S15"
+    ],
+    "pages": 8,
+    "visual_review": "docs/technical_note_review.json",
+    "purpose": "public source derivations, author-review manuscript version; not a TMI supplementary attachment",
+    "main_manuscript_pdf_created": false
+  },
+  "table_export_validation": {
+    "cells_checked": 521,
+    "all_numeric_sequences_preserved": true,
+    "sha256_cells_preserved_ignoring_display_linebreaks": true
+  },
+  "math_export": {
+    "native_accents_and_bars_encountered": {
+      "acc": 51,
+      "bar": 10
+    },
+    "accent_validation": {
+      "docs/technical_note.md": {
+        "source": {
+          "hat": 6,
+          "bar": 17,
+          "tilde": 21
+        },
+        "export": {
+          "hat": 6,
+          "bar": 17,
+          "tilde": 21
+        },
+        "passed": true
+      },
+      "docs/extended_experiments.md": {
+        "source": {
+          "hat": 0,
+          "bar": 0,
+          "tilde": 2
+        },
+        "export": {
+          "hat": 0,
+          "bar": 0,
+          "tilde": 2
+        },
+        "passed": true
+      }
+    },
+    "unsupported_math_elements": {},
+    "format": "LaTeX within Markdown"
+  },
+  "excluded": [
+    "raw image files",
+    "patient-level annotation records",
+    "per-image prediction arrays",
+    "image-name lists",
+    "model weights",
+    "credentials and private keys",
+    "research training/inference implementation"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4563,
+      "sha256": "61b2a0cda6d96afbd4ac5421b8b6eef479ecbbae514aadd74b241099f0009a8a"
+    },
+    {
+      "path": "code/README.md",
+      "bytes": 8436,
+      "sha256": "72d256f0e5d34c7dfbee98ffd7a892ec50b5cace92ebbc40f4428ce17bc97f14"
+    },
+    {
+      "path": "code/eval_saved_predictions.py",
+      "bytes": 22695,
+      "sha256": "daf038532cab58948d28078cc117dc797a24915a3bf393afb9cb3e72165c9b21"
+    },
+    {
+      "path": "code/example_output/json/interval_metrics.csv",
+      "bytes": 2924,
+      "sha256": "77c03f3d1c902ed3bdce049bf7e8e00e63f23adc5c65d0f2ce9b7728cb2822ab"
+    },
+    {
+      "path": "code/example_output/json/metrics.json",
+      "bytes": 251253,
+      "sha256": "9b9c17bd8cdfb218a44982b1098ccb91aa65a0630a781b75ed4a8e2bec842b95"
+    },
+    {
+      "path": "code/example_output/npz/interval_metrics.csv",
+      "bytes": 2924,
+      "sha256": "77c03f3d1c902ed3bdce049bf7e8e00e63f23adc5c65d0f2ce9b7728cb2822ab"
+    },
+    {
+      "path": "code/example_output/npz/metrics.json",
+      "bytes": 251437,
+      "sha256": "80f4d8e4baa1b0e3db4f36f0e73809506812b862cc9f56737e5fbed54b15d17f"
+    },
+    {
+      "path": "code/fixtures/synthetic_partitions.csv",
+      "bytes": 653,
+      "sha256": "4579835e304e49f487df2badaaba127a171349fed64bcb7df375d3d53eb3bf17"
+    },
+    {
+      "path": "code/fixtures/synthetic_predictions.json",
+      "bytes": 74217,
+      "sha256": "354381a0b860f8c8e7e09831b18dd16729414f66a67889e3bb7b30db8b34d33e"
+    },
+    {
+      "path": "code/fixtures/synthetic_predictions.npz",
+      "bytes": 5718,
+      "sha256": "5469412ce4345eea5a6f235140e63c7c9f05ba02616a667b36a078b20461d4ef"
+    },
+    {
+      "path": "code/fixtures/synthetic_uncertainty.npz",
+      "bytes": 10357,
+      "sha256": "ae85451198d675da65b48c1f29df60acaee1a790bb948865b483ffdcf247feba"
+    },
+    {
+      "path": "code/input_schema.json",
+      "bytes": 2580,
+      "sha256": "5c29f03fc2a50f5174e25c8602ba7b25aebf02c5f21468fc7f567ce05116a7dd"
+    },
+    {
+      "path": "code/js/geometry.mjs",
+      "bytes": 6440,
+      "sha256": "0205e2e22662c993783f553ed47d6333a599e31bc27f4fc3ebe1a7189680608f"
+    },
+    {
+      "path": "code/js/reference.mjs",
+      "bytes": 4764,
+      "sha256": "f3d7ea04986fd2fc253b8bb72fc04133c53d33306391e8676e2e5d8d09d4ae46"
+    },
+    {
+      "path": "code/make_synthetic_fixture.py",
+      "bytes": 4092,
+      "sha256": "961a53c1346c74a4d775ff19d194f16497b7759de7c9ad4cfe6ddd9d3404c0c1"
+    },
+    {
+      "path": "code/provenance.json",
+      "bytes": 2722,
+      "sha256": "b8771645604576551d13e8ca7b6498b129804d82c99d0037cb96111663807e87"
+    },
+    {
+      "path": "code/requirements.txt",
+      "bytes": 15,
+      "sha256": "99f43573522565d7c480efd1f954892948033915df6a4e685327e995d3396eb6"
+    },
+    {
+      "path": "code/tests/test_analysis.py",
+      "bytes": 6496,
+      "sha256": "a2ab352c3e3e2a9fd4c3e675e4dced4de8d26ccbc154e3ccf402d1f23c2ab10a"
+    },
+    {
+      "path": "code/tests/test_geometry.mjs",
+      "bytes": 8483,
+      "sha256": "1b7fd9be1cc6ead3b53842bd07046660f5973bbda37bfa0056716be1e875db83"
+    },
+    {
+      "path": "code/verification.json",
+      "bytes": 1645,
+      "sha256": "ffd2948ba56608c424df8e5162fcf687343fdcef902fb6df7eb6cb0c8e9d96ce"
+    },
+    {
+      "path": "config.yaml",
+      "bytes": 4719,
+      "sha256": "3bca9a7747d9a2bc9530776d5f8c46a0b4f44ab8b4629beaa2c66046d2b30753"
+    },
+    {
+      "path": "docs/extended_experiments.md",
+      "bytes": 63968,
+      "sha256": "0b382fc8e452c602238b6537258664279ba8cee611c9b3e828b873d075f86a6f"
+    },
+    {
+      "path": "docs/provenance_notes.md",
+      "bytes": 2522,
+      "sha256": "89d7f0a109070c5493162a3838137ca18eb9f112975f598206ec0132d406e8e9"
+    },
+    {
+      "path": "docs/references.md",
+      "bytes": 8697,
+      "sha256": "acfcf0c308b24c05febede92fe9d5d12525683d5602bf95fe32138951157595b"
+    },
+    {
+      "path": "docs/technical_note.md",
+      "bytes": 32606,
+      "sha256": "1b833c6c52ced2b12fb320db5aacbeeb9d1459b3f6907bda3ac28d723630afd8"
+    },
+    {
+      "path": "docs/technical_note.pdf",
+      "bytes": 261216,
+      "sha256": "677a400718cc0e9ef1a6e06461a9074eb16ace06149e57679f727d473ad42aa1"
+    },
+    {
+      "path": "docs/technical_note_review.json",
+      "bytes": 1728,
+      "sha256": "57c8e47cc9b40e1bda08b207993a8da6c246e4b477cf52ee170426d29e2e3421"
+    },
+    {
+      "path": "figures/figure_sources.json",
+      "bytes": 14485,
+      "sha256": "0e078c332e60b3157b684a2a3a91ee32b171f91a1d46dc41af87401e97479f27"
+    },
+    {
+      "path": "figures/main_fig_4.png",
+      "bytes": 683060,
+      "sha256": "d18e28d6ac49c35f23c819bbf1be4dfbd262f9739f37992db4ace942832301f7"
+    },
+    {
+      "path": "figures/main_fig_4.svg",
+      "bytes": 226478,
+      "sha256": "cd5debf0927d6c0692e5a9a0e1d837e6b02b4c850202177f349cdbf61bb60369"
+    },
+    {
+      "path": "figures/main_fig_7.png",
+      "bytes": 316985,
+      "sha256": "d3389578528760d6ce2562ff6eefdae94c5be5ae944b2f4c8f0580ff7c73c91b"
+    },
+    {
+      "path": "figures/main_fig_7.svg",
+      "bytes": 18515,
+      "sha256": "5d95fce0eb541150f348b0e2f64b40e455e957e924947e04cbca5d27f17429a6"
+    },
+    {
+      "path": "figures/supplement_fig_S1.png",
+      "bytes": 66064,
+      "sha256": "4dfa3c382f67ba86a057be84bc00464280ef0130bdb6fb00de85c4fc71c48395"
+    },
+    {
+      "path": "figures/supplement_fig_S1.svg",
+      "bytes": 16629,
+      "sha256": "b529cf0ca023740e9530c537945afc077e66df27e0a826f787ec68824a5742f3"
+    },
+    {
+      "path": "figures/supplement_fig_S2.png",
+      "bytes": 124508,
+      "sha256": "1402e4fd3a5efce90c696fc838e8e650f0a947c6c71d6556776671640c8e0721"
+    },
+    {
+      "path": "figures/supplement_fig_S2.svg",
+      "bytes": 171916,
+      "sha256": "1fb2b94d9e92f4eb599d90e52bcef60fcce93015db0ef0865d7e8e60954c8723"
+    },
+    {
+      "path": "figures/supplement_fig_S3.png",
+      "bytes": 54234,
+      "sha256": "3c34d03b93942572a85bf6edeb1b644ec31623471ae31c8cedb6840464414b8f"
+    },
+    {
+      "path": "figures/supplement_fig_S3.svg",
+      "bytes": 24434,
+      "sha256": "5b8ca0077c6d20cc87206a4005755666dafcffc1c682886518a5dd8137390e23"
+    },
+    {
+      "path": "figures/supplement_fig_S4.png",
+      "bytes": 73571,
+      "sha256": "f60c4d7ed280d6f13cf343f3391877b1cca204920910a7a0743b71a2d54e2ebc"
+    },
+    {
+      "path": "figures/supplement_fig_S4.svg",
+      "bytes": 101328,
+      "sha256": "3ba35d59e739ddb0456652a52913e455a315095dc4c935c024bcb365f414ce1c"
+    },
+    {
+      "path": "model_manifest.json",
+      "bytes": 1743,
+      "sha256": "cf487d104f08dc54a7176b1a9862bbe79b0e36743151fed59897771f99d90cf9"
+    },
+    {
+      "path": "tables/README.md",
+      "bytes": 2316,
+      "sha256": "03014c19e5daca085813782cfd833d57defc1cf5982c8c5ae15f64efc8dfd26f"
+    },
+    {
+      "path": "tables/table_S01.csv",
+      "bytes": 1242,
+      "sha256": "525b0ea1e55d22386dc89bf1e97075880890f773e01e4512741f8966466415c0"
+    },
+    {
+      "path": "tables/table_S01.md",
+      "bytes": 1526,
+      "sha256": "e52abf5fe3c693e66abd881b7476bc9bca0431e638e525e69fa7d64484e1a7ed"
+    },
+    {
+      "path": "tables/table_S02.csv",
+      "bytes": 549,
+      "sha256": "6ddfbc01873fdd5f80685698b773474a81834af34b20b0195e11442cf1d12e42"
+    },
+    {
+      "path": "tables/table_S02.md",
+      "bytes": 798,
+      "sha256": "d5120095f9fd31fd9d722d40804ee2668ce2065228505907bdade8f8fe82cc00"
+    },
+    {
+      "path": "tables/table_S03.csv",
+      "bytes": 343,
+      "sha256": "4ccaf3992acf28cc71098555df35dd89ff67de4d252484aa868ad8f6a94f0aaa"
+    },
+    {
+      "path": "tables/table_S03.md",
+      "bytes": 569,
+      "sha256": "c927e2a2ebccfe5a57b24e15341dba8b63febdcc870777f768db11e4904f9e78"
+    },
+    {
+      "path": "tables/table_S04.csv",
+      "bytes": 1094,
+      "sha256": "bcf97e6877432af422f7b882c24f9f7d312770c39f68d6b0278ce0461e5d1a64"
+    },
+    {
+      "path": "tables/table_S04.md",
+      "bytes": 1382,
+      "sha256": "0e5b0cadb2394496c602171ec4f120bd73db1839b8814256122b9b31f79a03a4"
+    },
+    {
+      "path": "tables/table_S05.csv",
+      "bytes": 376,
+      "sha256": "46a5d97336b04d999fb7f67bd0c3864f30517265da48c211c460fed81a0347cc"
+    },
+    {
+      "path": "tables/table_S05.md",
+      "bytes": 624,
+      "sha256": "504fad7d47ec4e5b33fd7ca80ec8066620e3e1f0dab0fa0e15b5d15b2bb8afcc"
+    },
+    {
+      "path": "tables/table_S06.csv",
+      "bytes": 371,
+      "sha256": "41d045ad59f741572989334f111feb238bd122c79159252bd0e62e6a91785283"
+    },
+    {
+      "path": "tables/table_S06.md",
+      "bytes": 623,
+      "sha256": "5325a5a4cb17f51e73d8fa3e22440bb8dd698f335b1955dd5f781ae860cceb9f"
+    },
+    {
+      "path": "tables/table_S07.csv",
+      "bytes": 380,
+      "sha256": "6534fecb09a6146e9c8278081e3d5cc219abe9486ebf1cc296dbf8c5c9ff8d4b"
+    },
+    {
+      "path": "tables/table_S07.md",
+      "bytes": 666,
+      "sha256": "c4a5e01ef4ddb8149afd191734a22bc57338516af83c75f66cd8bf53b09b2dbb"
+    },
+    {
+      "path": "tables/table_S08.csv",
+      "bytes": 353,
+      "sha256": "c6b5605d487e98c264b628e61061e66a62aa688d77da63efbb244b96ec2970d1"
+    },
+    {
+      "path": "tables/table_S08.md",
+      "bytes": 601,
+      "sha256": "02d8d41590eccd9df9b4000524a09435934252d6a0ac71d4085ec01ff00d928b"
+    },
+    {
+      "path": "tables/table_S09.csv",
+      "bytes": 246,
+      "sha256": "1d2ae41d27e41eaa1fb380adda24fc36ace9cf1610e7de0a93c1ec7b3f1fa901"
+    },
+    {
+      "path": "tables/table_S09.md",
+      "bytes": 497,
+      "sha256": "8cb966603a261df98b2392f4e5cec860582c134fad4d2a00afdee7560261cdd7"
+    },
+    {
+      "path": "tables/table_S10.csv",
+      "bytes": 252,
+      "sha256": "4073948f9de45b34a54a1c3724b820b742eae75227cc218d94db4ae27dd86128"
+    },
+    {
+      "path": "tables/table_S10.md",
+      "bytes": 536,
+      "sha256": "f67f5c2b65f3bbafdb9ee64d15880d04aafa2ea840989173dd5b060c93714839"
+    },
+    {
+      "path": "tables/table_S11.csv",
+      "bytes": 216,
+      "sha256": "9759cb90b2a4c6ae66037b6bfe78473f64601906e8acdb5d1be18b2bb9b99502"
+    },
+    {
+      "path": "tables/table_S11.md",
+      "bytes": 421,
+      "sha256": "abda90cb8effcd10710491aec79707709bd792b0430fc25516d245fd75e8da25"
+    },
+    {
+      "path": "tables/table_S12.csv",
+      "bytes": 648,
+      "sha256": "206d5c847a0b538794dd086f8721063caebc681c122bf8d111beb2b282f1b545"
+    },
+    {
+      "path": "tables/table_S12.md",
+      "bytes": 928,
+      "sha256": "9d4cb76cda08f129e72e2c995f86bc1a30b4857ac5ef9712ba9b09fc089980cf"
+    },
+    {
+      "path": "tables/table_S13.csv",
+      "bytes": 330,
+      "sha256": "27de5969c4c507dd1dcaf32f2852d3958120579cb876d7119d5aaea9f4a00fe4"
+    },
+    {
+      "path": "tables/table_S13.md",
+      "bytes": 636,
+      "sha256": "0ad57e23ae356096e63a4b86e2fe4eca18561f560bf71889bb2a7a64ceceb966"
+    },
+    {
+      "path": "tables/table_S14.csv",
+      "bytes": 391,
+      "sha256": "84a8d777a145b8096aca2c088843c62828aceda79cdcd4822ddd2535b86dc3ec"
+    },
+    {
+      "path": "tables/table_S14.md",
+      "bytes": 690,
+      "sha256": "b143e93003867577573bcc161358bf4a858fad0462c535799ab6e055e0465ae7"
+    },
+    {
+      "path": "tables/table_S15.csv",
+      "bytes": 378,
+      "sha256": "551ebf1d41d2c269c158fccc5439903678b7f37ae5d47ceb0be8a9cefd08f603"
+    },
+    {
+      "path": "tables/table_S15.md",
+      "bytes": 631,
+      "sha256": "88bdb1a836c18a3d43d6b547692a06227e748591c4852222fb41f6a28c3e1dbb"
+    },
+    {
+      "path": "tables/table_S16.csv",
+      "bytes": 343,
+      "sha256": "b561481729df30724a8cf5b5b8bb84dcc1c34622a83b45f14cfc0fe81d50d54b"
+    },
+    {
+      "path": "tables/table_S16.md",
+      "bytes": 581,
+      "sha256": "22172215222639a901af1ac85c6a9ddb6e056a90a5e6e633c596acf61b1d379f"
+    },
+    {
+      "path": "tables/table_S17.csv",
+      "bytes": 760,
+      "sha256": "d1983e75c3f42229439a23a8c7dfcae5ff01650519e229f4f02d7bfc20997f09"
+    },
+    {
+      "path": "tables/table_S17.md",
+      "bytes": 1131,
+      "sha256": "8e9f443e8c18f9d48a2ba02b7a7754aa423f8b7069568e54f4c9ff3754413cb1"
+    }
+  ],
+  "source_package_status": "unpublished_author_review",
+  "public_copy_changes": [
+    "Public navigation and provenance language",
+    "Explicit exported-grid units, row weighting, edge heuristic and cosine loss schedule",
+    "Original source results, native-equation PDF and all 37 references retained",
+    "Private-source DOCX exporter excluded"
+  ]
+}

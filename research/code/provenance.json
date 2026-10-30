@@ -1,0 +1,27 @@
+{
+  "status": "public_research_documentation",
+  "purpose": "Executable, model-free saved-prediction analysis with synthetic tests; not full training reproduction.",
+  "source_root": "DDH project workspace; paths below are project-relative identifiers",
+  "reviewed_sources": [
+    {"path": "experiments/restructure_20261030/calibration/run_cached_calibration.py", "sha256": "4d292622f14085d77a8beec66db08f49711511647e389f0a68cbf4fd02b2b6c2", "use": "Adapted interval midpoint/half-width scaling, calibration-only coefficients, image-balanced coverage and fixed-coefficient image bootstrap"},
+    {"path": "experiments/restructure_20261030/calibration/independent_check.py", "sha256": "bf1c810dfab44fd68bd822691190d739e31a873d1d58fd3e8dee958fea85006c", "use": "Adapted exact Fraction(1/R) empirical score weighting and scalar invariants"},
+    {"path": "experiments/green_revision_20261030/occlusion_table/reproduce_occlusion_table.py", "sha256": "fca6b2a5feb74d6badbe72fdf10ab784f86ac832f9711019e73a6c13df5738a9", "use": "Reviewed for degree/pixel units and image-bootstrap conventions; occlusion inputs and full table reconstruction are not included"},
+    {"path": "web_demo_20261024/geometry.mjs", "sha256": "0205e2e22662c993783f553ed47d6333a599e31bc27f4fc3ebe1a7189680608f", "copy": "code/js/geometry.mjs", "copy_mode": "byte_identical"},
+    {"path": "web_demo_20261024/validation/reference.mjs", "sha256": "f3d7ea04986fd2fc253b8bb72fc04133c53d33306391e8676e2e5d8d09d4ae46", "copy": "code/js/reference.mjs", "copy_mode": "byte_identical; also used as the reference for the Python degree-valued Jacobian"}
+  ],
+  "new_programs": [
+    {"path": "code/eval_saved_predictions.py", "changes": ["Explicit CLI input/output paths", "JSON schema and original-layout NPZ adapter", "No hard-coded cohort size", "Exact image-balanced weights", "No image identifiers in analysis output", "Saved-input hashes checked before writing output"]},
+    {"path": "code/make_synthetic_fixture.py", "purpose": "Generate 24 artificial five-landmark configurations and synthetic cache containers without any study data"},
+    {"path": "code/tests/test_analysis.py", "purpose": "Python mathematical, schema, independence-of-fitting and cache-adapter tests"},
+    {"path": "code/tests/test_geometry.mjs", "purpose": "Node built-in tests of the copied geometry modules"}
+  ],
+  "original_sources_modified": false,
+  "raw_research_images_included": false,
+  "patient_annotations_included": false,
+  "study_prediction_arrays_included": false,
+  "model_weights_included": false,
+  "model_training_performed": false,
+  "image_inference_performed": false,
+  "research_results_reproduced_in_this_package": false,
+  "public_license_assigned": false
+}

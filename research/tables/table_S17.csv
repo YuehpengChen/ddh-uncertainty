@@ -1,0 +1,13 @@
+Group,Rule,Angle,n,Coverage (%),Width (°)
+calibration,Raw,alpha,100,"98.00 [96.10,99.50]",24.40
+calibration,Raw,beta,100,"83.10 [77.90,88.40]",26.09
+assessment,Raw,alpha,142,"97.96 [96.27,99.37]",24.20
+assessment,Raw,beta,142,"87.82 [83.66,91.62]",26.18
+calibration,Image weighted,alpha,100,"90.00 [85.80,93.90]",14.13
+calibration,Image weighted,beta,100,"90.40 [86.20,94.30]",33.46
+assessment,Image weighted,alpha,142,"85.49 [81.41,89.30]",14.01
+assessment,Image weighted,beta,142,"91.83 [88.52,94.72]",33.58
+calibration,One rater,alpha,100,"88.50 [84.10,92.60]",13.73
+calibration,One rater,beta,100,"88.70 [84.30,92.80]",30.62
+assessment,One rater,alpha,142,"83.59 [79.30,87.61]",13.62
+assessment,One rater,beta,142,"90.42 [87.04,93.52]",30.72

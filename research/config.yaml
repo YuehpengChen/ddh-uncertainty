@@ -1,0 +1,115 @@
+package_status: "public_research_documentation"
+source: "Frozen supplementary Table S1 and Section S1; source hashes in package_manifest.json"
+interpretation: "Reported settings are documentation, not a newly executed or independently reproduced training run."
+architecture:
+  input_size: [448, 448]
+  backbone: "Swin-Tiny"
+  tokens: 12
+  token_dimension: 64
+  codebook_entries: 256
+  encoder:
+    mixer_blocks: 8
+    width: 384
+  decoder:
+    mixer_blocks: 3
+    width: 256
+  stage2_transformer:
+    layers: 4
+    width: 192
+    heads: 6
+stage1:
+  optimizer: "AdamW"
+  batch_size: 44
+  initial_learning_rate: 0.0003
+  weight_decay: 0.005
+  epoch_budget: 500
+  selected_epoch: 152
+  quantization_transition_epochs: [40, 100]
+  final_quantization_weight: 4
+  log_variance_clip: [-14, 4]
+  edge_variance_offset: 1.0e-06
+  edge_pairs: [[2, 4], [2, 5], [3, 4]]
+  target_row_weighting: "one equal-weight loss per available rater annotation; five-rater/two-rater image weight ratio 2.5"
+  input_annotation_sampling: "uniform over all annotations of the same image, including the target rater"
+  edge_variance_interpretation: "heuristic sum of four endpoint coordinate variances plus 1e-6; not directional length variance"
+stage2:
+  optimizer: "AdamW"
+  initial_learning_rate: 0.0002
+  weight_decay: 0.01
+  adam_betas: [0.9, 0.999]
+  schedule:
+    type: "cosine"
+    Tmax: 400
+    minimum_learning_rate: 1.0e-06
+  full_model:
+    selected_epoch: 386
+    initial_token_coordinate_angle_weights: [1, 5, 2]
+    cosine_progress: "c_e = (1 - cos(pi * (e - 1) / E)) / 2, as reported in source Eq. S21"
+    token_coordinate_angle_weights: "[1 - 0.5*c_e, 5*(1+c_e), 2*(1+c_e)]"
+    batch_size:
+      value: 60
+      provenance: "inferred_from_optimizer_step_counts_and4918_training_rows"
+      status: "author_confirmation_required"
+      assumptions: ["fixed batch size", "one optimizer update per minibatch", "optimizer step preserved on resumption"]
+  comparator:
+    decoder: "trained_from_scratch"
+    selected_epoch: 147
+    initial_coordinate_angle_variance_likelihood_weights: [5, 2, 0.1]
+    batch_size:
+      value: 4
+      provenance: "inferred_from_optimizer_step_counts_and4918_training_rows"
+      status: "author_confirmation_required"
+  label_smoothing:
+    value: 0.15
+    provenance: "retained_implementation_default; historical CLI value not stored in the checkpoint"
+    status: "author_confirmation_required"
+  smooth_l1_transition_pixels:
+    value: 2
+    provenance: "retained_implementation_default; historical CLI value not stored in the checkpoint"
+    status: "author_confirmation_required"
+evaluation:
+  dropout_probability: 0.3
+  dropout_passes: 50
+  joint_draws_per_image: 4096
+  original_image_size: [617, 563]
+  batchnorm:
+    training_images: 2180
+    batches: 545
+    batch_size: 4
+    augmentation: false
+    dropout: false
+    status: "reported_fixed_evaluation_protocol"
+  software_as_reported:
+    python: "3.12.14"
+    pytorch: "2.8.0"
+    torchvision: "0.23.0"
+    timm: "1.0.19"
+data_scope:
+  images: 2422
+  training_images: 2180
+  internal_evaluation_images: 242
+  five_rater_images: 200
+  five_rater_training_images: 186
+  five_rater_evaluation_images: 14
+  patient_data_included: false
+  exported_physical_pixel_spacing: "not retained; distances reported in pixels"
+  physical_pixel_aspect_ratio: "not verified; no 1:1 claim"
+reported_source_table_verbatim:
+  "Input / backbone": "$448 \\times  448$ / Swin Tiny"
+  "Latent representation": "$12$ tokens; dimension $64$; $256$ codes"
+  "Encoder / decoder": "$8$ Mixer blocks, width $384$ / $3$ blocks, width $256$"
+  "Stage 1 optimizer": "AdamW; batch $44$; initial LR $0.0003$; weight decay $0.005$"
+  "Stage 1 schedule": "Budget $500$ epochs; selected epoch 152"
+  "Stage 1 transition": "Continuous warm-up; quantization transition epochs $40$–$100$; final quantization weight $4$"
+  "Stage 1 variance": "Log variance clamp $[-14, 4]$; edge variance offset $0.000001$"
+  "Stage 2 architecture": "Width $192$; $6$ heads; $4$ decoder layers"
+  "Stage 2 optimizer": "Initial LR $0.0002$; weight decay $0.01$; Adam $betas$ $0.9$/$0.999$"
+  "Stage 2 schedule": "Cosine, ${T}_{\\max }$ $400$, minimum LR $0.000001$; selected epoch 386"
+  "Evaluation dropout": "$0.3$"
+  "Stage 2 training batch": "Full: 60; comparator: 4"
+  "Label smoothing / coordinate loss": "$0.15$ / $Smooth-L1 beta 2$"
+  "Stage 2 initial loss weights": "Token / point / angle: 1 / 5 / 2"
+  "Selection: decoder trained from scratch": "Epoch 147"
+  "Evaluation BatchNorm estimation": "2,180 training images; 545 batches of 4"
+  "Evaluation software": "Python 3.12.14; PyTorch 2.8.0; torchvision 0.23.0; timm 1.0.19"
+  "Dropout evaluation": "$50$ dropout predictions/image"

@@ -1,0 +1,12 @@
+# Provenance and interpretation
+
+- The entire 242-image evaluation cohort had been used for checkpoint selection before the 100/142 post-hoc rescaling split. The main manuscript discloses this use. These results are internal validation; no untouched external holdout or conformal-coverage guarantee is claimed.
+- Table S1 batch sizes of 60/4 were inferred from optimizer counters under fixed-minibatch and optimizer-resumption assumptions. Label smoothing 0.15 and Smooth-L1 transition 2 are retained implementation settings; the historical checkpoints did not store those CLI arguments. The configuration labels these provenance limits explicitly.
+- Physical pixel spacing was not retained in the exported 617×563 image files. Distances use the restored exported-image grid and are reported in pixels. This does not establish a calibrated physical x/y aspect ratio.
+- Stage 1 averages target-annotation rows. Five-rater images therefore have 2.5 times the training-row weight of two-rater images. The edge penalty pools the four endpoint coordinate variances and adds 10^-6; this is heuristic weighting, not variance projected onto the segment direction.
+- The Stage 2 loss weights use cosine progress c_e in [0,1]: (lambda_t, lambda_p, lambda_a) = (1 - 0.5c_e, 5(1+c_e), 2(1+c_e)). The complete source definition is in technical-note Eq. (S21).
+- The nested 30-versus-50-pass comparison describes within-sequence sensitivity. Mean relative SD differences are 0.43%/0.38% for total alpha/beta uncertainty and 6.35%/6.92% for the dropout-only component; it is not a convergence proof.
+- The four angle categories are geometric alpha-angle strata derived from annotations. They are not established final clinical Graf diagnoses. Observer experience, reading independence and original category-field provenance remain to be confirmed from study records.
+- Dashes in baseline tables retain the source meaning of unavailable or uncomputed output metrics. They do not imply zero error.
+- Aggregate tables and finished figure files preserve the source results, including findings that require further assessment. The code folder provides model-free saved-prediction analysis with synthetic tests. It excludes clinical inputs and full training checkpoints, and does not certify a rerun of the study.
+- Source main Figures 4 and 7 and source supporting Figures S1–S4 retain their full-record numbering. The compact main manuscript may renumber its retained figures. All 37 full-record references are included in references.md.

@@ -1,0 +1,7 @@
+Encoder input,Repeat,$E$ (px),$H$ (%),$K$
+Input from target rater,1,2.93,87.68,52.64
+Input sampled from all raters,1,10.94,36.72,32.19
+Input from target rater,2,3.55,90.12,117.93
+Input sampled from all raters,2,10.56,38.47,56.57
+Input from target rater,3,2.69,90.48,116.42
+Input sampled from all raters,3,10.55,41.25,64.01

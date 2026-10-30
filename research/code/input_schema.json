@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Saved DDH prediction analysis, schema 1",
+  "type": "object",
+  "required": ["schema_version", "coordinate_units", "angle_units", "coordinate_order", "nominal_level", "data_kind", "images"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "coordinate_units": {"const": "px"},
+    "angle_units": {"const": "deg"},
+    "coordinate_order": {"const": ["x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4", "x5", "y5"]},
+    "nominal_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "data_kind": {"enum": ["synthetic", "author_supplied"]},
+    "description": {"type": "string"},
+    "images": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/record"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "pair": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+    "points": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"$ref": "#/$defs/pair"}},
+    "vector": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"type": "number"}},
+    "variance_vector": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"type": "number", "minimum": 0}},
+    "covariance": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"$ref": "#/$defs/vector"}},
+    "record": {
+      "type": "object",
+      "required": ["id", "partition", "raters_px", "raw_angle_intervals_deg"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "partition": {"enum": ["calibration", "assessment"]},
+        "raters_px": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/points"}},
+        "raw_angle_intervals_deg": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/pair"}},
+        "pass_means_px": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/vector"}},
+        "pass_variances_px2": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/variance_vector"}},
+        "mean_px": {"oneOf": [{"$ref": "#/$defs/vector"}, {"$ref": "#/$defs/points"}]},
+        "within_variance_px2": {"$ref": "#/$defs/variance_vector"},
+        "between_covariance_px2": {"$ref": "#/$defs/covariance"},
+        "total_covariance_px2": {"$ref": "#/$defs/covariance"}
+      },
+      "oneOf": [
+        {"required": ["pass_means_px", "pass_variances_px2"], "not": {"required": ["mean_px"]}},
+        {"required": ["mean_px", "within_variance_px2", "between_covariance_px2"], "not": {"required": ["pass_means_px"]}}
+      ],
+      "additionalProperties": false
+    }
+  }
+}
