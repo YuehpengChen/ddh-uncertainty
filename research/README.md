@@ -5,7 +5,8 @@ Public research documentation accompanying **Propagating Landmark Covariance to 
 | Material | Contents |
 | --- | --- |
 | [Training and evaluation configuration](config.yaml) | Architecture, reported hyperparameters, loss schedules and provenance flags (source Table S1) |
-| [Artifact SHA-256 identifiers](model_manifest.json) | Original model/evaluation identifiers (source Table S2); private checkpoints and image lists are excluded |
+| [Shared-encoder spatial heatmap comparator](heatmap/README.md) | Training/evaluation implementation, recorded configuration, aggregate results and artifact identities |
+| [Artifact SHA-256 identifiers](model_manifest.json) | Original model/evaluation identifiers (source Table S2) and recorded heatmap artifact identifiers; private checkpoints and image lists are excluded |
 | [Technical note PDF](docs/technical_note.pdf) · [Markdown](docs/technical_note.md) | Detailed native-equation derivations and complete training objectives (source Sections S14–S15) |
 | [Extended experiments](docs/extended_experiments.md) | Complete supporting results, experiment descriptions and figure captions |
 | [Tables S1–S17](tables/README.md) | All 17 tables in CSV and Markdown, including complete confidence intervals |
@@ -25,7 +26,7 @@ python3 -B -m unittest discover -s code/tests -p 'test_analysis.py' -v
 node --test code/tests/test_geometry.mjs
 ```
 
-The supplied inputs and outputs are synthetic. The code evaluates saved predictions; it does not perform model training or neural-network image inference. The 33 included tests check arithmetic, geometry, input handling and fitting invariants. Passing them does not establish clinical performance or numerical reproduction of the study results. See [code/verification.json](code/verification.json).
+The supplied inputs and outputs are synthetic. The `code/` utilities evaluate saved predictions; they do not perform model training or neural-network image inference. The separate `heatmap/` trainer/evaluator requires the study inputs and frozen encoder artifact supplied by the operator; these private inputs and model binaries are not distributed here. The 33 included tests check arithmetic, geometry, input handling and fitting invariants. Passing them does not establish clinical performance or numerical reproduction of the study results. See [code/verification.json](code/verification.json).
 
 ## Interpretation and provenance
 
@@ -42,3 +43,4 @@ The technical-note PDF preserves the frozen source notation and its author-revie
 No raw study images, patient-level annotations, per-image prediction arrays, image-name lists, credentials or model-weight binaries are included in this directory. Finished figure composites were reviewed for visible identifying text; the only ultrasound panel is a cropped, annotated manuscript example. Source identifiers and hashes are retained in [figure_sources.json](figures/figure_sources.json).
 
 This public repository permits reading and downloading the files. No additional software, figure, model or dataset reuse license is assigned here. Existing third-party terms remain in force. The browser demonstration and its separately licensed public examples are described in the [main README](../README.md).
+

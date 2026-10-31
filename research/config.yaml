@@ -65,7 +65,7 @@ stage2:
     status: "author_confirmation_required"
   smooth_l1_transition_pixels:
     value: 2
-    provenance: "retained_implementation_default; historical CLI value not stored in the checkpoint"
+    provenance: "hardcoded beta=2.0 in retained Stage 2 source; executed historical source/checkpoint binding not recorded"
     status: "author_confirmation_required"
 evaluation:
   dropout_probability: 0.3
@@ -113,3 +113,11 @@ reported_source_table_verbatim:
   "Evaluation BatchNorm estimation": "2,180 training images; 545 batches of 4"
   "Evaluation software": "Python 3.12.14; PyTorch 2.8.0; torchvision 0.23.0; timm 1.0.19"
   "Dropout evaluation": "$50$ dropout predictions/image"
+
+heatmap_comparator:
+  configuration: "heatmap/actual_config.json"
+  implementation: "heatmap/heatmap_baseline.py"
+  aggregate_results: "heatmap/aggregate_results.json"
+  provenance: "heatmap/provenance.json"
+  status: "separately recorded training run; not a relabeling of the historical fresh-decoder comparator"
+

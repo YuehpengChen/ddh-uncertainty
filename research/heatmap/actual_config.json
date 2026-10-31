@@ -1,0 +1,58 @@
+{
+  "status": "recorded_run_configuration",
+  "scope": "Separate spatial heatmap comparator; original Token hyperparameter uncertainty is unchanged.",
+  "recorded_arguments": {
+    "command": "train",
+    "device": "cuda",
+    "allow_non_cuda": false,
+    "image_size": 448,
+    "heatmap_size": 112,
+    "hidden": 128,
+    "epochs": 80,
+    "patience": 15,
+    "batch": 12,
+    "workers": 4,
+    "lr": 0.0002,
+    "weight_decay": 0.01,
+    "target_sigma_grid": 2.0,
+    "internal_validation": 0.1,
+    "seed": 20261031,
+    "freeze_encoder": true,
+    "augment": false,
+    "refit_all": true,
+    "annotation_row_weighting": true
+  },
+  "feature_cache_used": true,
+  "feature_cache_dtype": "float16",
+  "selection_fit_images": 1962,
+  "selection_validation_images": 218,
+  "selection_criterion": "minimum training-only held-out spatial cross-entropy",
+  "selected_epochs": 14,
+  "refit_images": 2180,
+  "selection_epoch_budget": 80,
+  "refit_cosine_T_max": 80,
+  "refit_restarts_learning_rate_schedule": true,
+  "target": "per-image average of per-rater normalized Gaussian heatmaps",
+  "training_image_weight": "R_i / mean_R (matches annotation-row weighting)",
+  "coordinates": {
+    "source_grid_wh": [
+      617,
+      563
+    ],
+    "input_grid_wh": [
+      448,
+      448
+    ],
+    "heatmap_centers": "(index+0.5)/heatmap_size; coordinates divide by source W/H"
+  },
+  "sampling": {
+    "distribution": "Five independent anisotropic two-dimensional Gaussian moment blocks",
+    "draws": 4096,
+    "target_kernel_smoothing_retained": true
+  },
+  "not_matched_token_ablation": true,
+  "recorded_runtime": {
+    "torch": "2.10.0+cu128",
+    "timm": "1.0.19"
+  }
+}

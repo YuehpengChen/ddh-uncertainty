@@ -37,6 +37,20 @@
       "sha256": "479037c33549df6ce3941947b55fc889bfab258d7a570c2aa9549341517daf10",
       "included_in_package": false,
       "source": "supplementary Table S2"
+    },
+    {
+      "artifact": "Shared-encoder spatial heatmap refit",
+      "sha256": "2cf11122e40cb502e63606495223e2e9c370fea57181a0b0ff3b8cd1f2b3e7a9",
+      "included_in_package": false,
+      "source": "recorded training_complete.json and evaluation_protocol.json",
+      "verification": "digest agreement checked in saved records; remote checkpoint binary not retrieved or rehashed in this export"
+    },
+    {
+      "artifact": "Heatmap frozen-encoder input artifact",
+      "sha256": "1ad8e9c218a51a90f38a0ff82e3bd99a7f172f038201432a882ab3dbaa0ea27e",
+      "included_in_package": false,
+      "source": "recorded heatmap run protocol",
+      "verification": "must match the operator-supplied feature cache manifest; binary not distributed"
     }
   ],
   "source": {
@@ -45,3 +59,4 @@
   },
   "verification": "Digests transcribed from Table S2; corresponding binary artifacts were not rehashed during this documentation export."
 }
+

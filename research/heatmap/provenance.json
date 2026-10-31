@@ -1,0 +1,81 @@
+{
+  "created_utc": "2026-10-31T13:11:30.373322+00:00",
+  "status": "audited_saved_source_export",
+  "upstream_repository": "https://github.com/YuehpengChen/ddh-uncertainty",
+  "upstream_commit_observed": "4da1af15b512339ca871b6c2e387df3d17ca70af",
+  "implementation_sha256": "525c693c443beb95ff6f85fbc378fb1f320a3654c24b593977778638bcb0469c",
+  "implementation_matches_deployment_manifest": true,
+  "checkpoint_sha256_reported": "2cf11122e40cb502e63606495223e2e9c370fea57181a0b0ff3b8cd1f2b3e7a9",
+  "checkpoint_digest_evidence": [
+    "training_complete.json",
+    "evaluation_protocol.json"
+  ],
+  "checkpoint_binary_included": false,
+  "checkpoint_binary_independently_rehashed_in_this_audit": false,
+  "encoder_artifact_sha256": "1ad8e9c218a51a90f38a0ff82e3bd99a7f172f038201432a882ab3dbaa0ea27e",
+  "shared_feature_cache_manifest_sha256": "98d0053b7af26f1c1021036d78abfd9f43304a121f78eaa7722ddb8f788572a7",
+  "input_list_sha256": {
+    "training": "eb85a2207976dfb7158970f22081fa8ea0b6f69daeebec474b6a0e220a5263cf",
+    "evaluation": "e4f328262ad02ec9af2a7437a5d781b963e0debd6a0334707c3155a69f23a6e6"
+  },
+  "checkpoint_selection": {
+    "criterion": "minimum training-only held-out spatial cross-entropy",
+    "selection_epochs_logged": 29,
+    "best_epoch": 14,
+    "best_validation_loss": 4.581702647952858,
+    "refit_epochs_logged": 14,
+    "evaluation_outcomes_used_to_select_new_head": false
+  },
+  "source_files_sha256": {
+    "heatmap_baseline.py": "525c693c443beb95ff6f85fbc378fb1f320a3654c24b593977778638bcb0469c",
+    "requirements.txt": "b0a375da86353877dce5290cdd4fe95e294fbc540c5708a5f8908024db4fde00",
+    "protocol_config.json": "71a9776fc00f7715a2d483be51d93fbc5ee6a0961fb452678d12afe83151c5aa",
+    "run_protocol.json": "b14b126922445e0909b7e8061bb25c5d4d780f191a549233b4dc3b2f19a70ca4",
+    "training_complete.json": "e844b2825ab5bb662b8aecc5a1f1ed546bacff274674c94a51a72d4e0115fded",
+    "selection_log.jsonl": "58ef5a0dafdcaff547dd396780bf94ebd7b81d83999da42c867890014d4a041b",
+    "refit_log.jsonl": "4c356e217ba41c106afd1b177ba45c3e6cf28ca2d3a8cfdd9d962a4fb4879952",
+    "evaluation_protocol.json": "5165e5aa9bebce7e691f7341655070a7a7d9812edead7c50ab30075a57b81eca",
+    "evaluation_summary.json": "f0eff192fb1463eaad74547c35ed128405343c2275acefddb0566eac50614e11",
+    "point_metrics.csv": "524a2154999334a987de9a81eaddb74d8d3471546e3955dd2a71d4ec821b47e0",
+    "point_paired_differences.csv": "f07042313f57373acb7ce58d72555086f15dc1b6d3fae33683efb0dea84e335d",
+    "table_rows.csv": "4d4e4e972de14b7a216ce882f748e87d09883d8c180d58b86f85bb8a9eca1662",
+    "paired_contrasts.csv": "f98d01d33fd3e2ed1193ff40c4e8e6f00491f932d3ec361e93b96c671fa7bfd2",
+    "historical_findings.json": "bbbf7c601ff6bdfa7a27224c9bb8be314f8934a2d75895fd62e17319b0c5151c",
+    "table_ready.json": "690daa42580bc530949c5f52849671196e747c240b74205dff3d5ebbeb769040",
+    "downstream_controlled_covariance.py": "14554727e24ecb177d4bee9a8794534ab8f52952b937ecd3b0619210b707f530",
+    "stage2_uncer_v9.py": "de3c8cbc233635858289265f28f3169b298c217c4584d6574da0bffcd29f3001"
+  },
+  "historical_token_settings": {
+    "stage1_batch_size": {
+      "value": 44,
+      "status": "saved_checkpoint_cfg"
+    },
+    "stage2_full_batch_size": {
+      "value": 60,
+      "status": "author_confirmation_required",
+      "evidence": "optimizer-counter inference, subject to constant-batch and resumption assumptions"
+    },
+    "historical_fresh_decoder_batch_size": {
+      "value": 4,
+      "status": "author_confirmation_required",
+      "evidence": "optimizer-counter inference, subject to constant-batch and resumption assumptions"
+    },
+    "label_smoothing": {
+      "value": 0.15,
+      "status": "author_confirmation_required",
+      "evidence": "overridable retained CLI default; not recorded with historical weights"
+    },
+    "smooth_l1_transition_pixels": {
+      "value": 2.0,
+      "status": "author_confirmation_required",
+      "evidence": "hardcoded beta=2.0 in retained source; historical executed-source/checkpoint binding not recorded"
+    }
+  },
+  "limits": [
+    "This audit read saved configuration, logs and aggregate analysis; no training or image inference was run.",
+    "The frozen encoder has the existing study training history; this heatmap experiment does not create a new independent evaluation cohort.",
+    "Clinical image/annotation files, image-name lists, per-image arrays, checkpoints, feature caches and private host paths are excluded.",
+    "Exact cached-run replay requires the operator-supplied original encoder artifact and the declared float16 feature cache; neither is included."
+  ],
+  "downstream_analysis_code_sha256": "14554727e24ecb177d4bee9a8794534ab8f52952b937ecd3b0619210b707f530"
+}
