@@ -1,6 +1,6 @@
 # Provenance and interpretation
 
-- The entire 242-image evaluation cohort had been used for checkpoint selection before the 100/142 post-hoc rescaling split. The main manuscript discloses this use. These results are internal validation; no untouched external holdout or conformal-coverage guarantee is claimed.
+- The 100/142 post-hoc calibration/assessment split is an internal rescaling analysis; no untouched external holdout or conformal-coverage guarantee is claimed.
 - Table S1 batch sizes of 60/4 were inferred from optimizer counters under fixed-minibatch and optimizer-resumption assumptions. Label smoothing 0.15 and Smooth-L1 transition 2 are retained implementation settings; the historical checkpoints did not store those CLI arguments. The configuration labels these provenance limits explicitly.
 - Physical pixel spacing was not retained in the exported 617×563 image files. Distances use the restored exported-image grid and are reported in pixels. This does not establish a calibrated physical x/y aspect ratio.
 - Stage 1 averages target-annotation rows. Five-rater images therefore have 2.5 times the training-row weight of two-rater images. The edge penalty pools the four endpoint coordinate variances and adds 10^-6; this is heuristic weighting, not variance projected onto the segment direction.
