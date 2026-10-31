@@ -51,7 +51,7 @@ This validation folder contains synthetic-coordinate tests. It neither imports a
 
 - Landmark dragging is a geometry illustration, not a new model prediction. Keep its outputs visually and textually separate from neural inference.
 - Inference on a synthetic phantom checks execution and coordinate processing. It does not measure clinical localization accuracy or demonstrate the paper's reported performance.
-- The study used internal model-selection images. Public arbitrary-image predictions have no established external accuracy, calibration or expert-review benefit.
+- The study used internal-evaluation images. Public arbitrary-image predictions have no established external accuracy, calibration or expert-review benefit.
 - Graf assessment also requires the correct acquisition plane, anatomy and infant age. Angle thresholds alone are not a clinical diagnosis. Use "research demonstration; not for clinical decisions" prominently.
 
 ## Source anchors
