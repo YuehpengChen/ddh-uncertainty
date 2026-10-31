@@ -29,7 +29,7 @@ The supplied inputs and outputs are synthetic. The code evaluates saved predicti
 
 ## Interpretation and provenance
 
-The 242-image cohort was used for checkpoint selection before the 100/142 calibration/assessment split. The main manuscript discloses that history. The split is an internal rescaling analysis, not a fresh independent test set or a distribution-free coverage guarantee.
+The 100/142 calibration/assessment split is an internal rescaling analysis, not a fresh independent test set or a distribution-free coverage guarantee.
 
 At 30 versus 50 shared-sequence dropout passes, mean relative alpha/beta SD differences were 0.43%/0.38% for total uncertainty and 6.35%/6.92% for the dropout-only component. These are within-sequence sensitivity results and do not prove convergence across independent repetitions.
 
