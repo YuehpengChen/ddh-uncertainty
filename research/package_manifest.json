@@ -185,7 +185,7 @@
       "source_member": "word/media/image1.png",
       "drawing_body_index": 89,
       "caption_body_index": 90,
-      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1–P2 defines the baseline; P4–P3 and P4–P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31° and 5.71°, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
+      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1\u2013P2 defines the baseline; P4\u2013P3 and P4\u2013P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31\u00b0 and 5.71\u00b0, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -197,7 +197,7 @@
       "source_member": "word/media/image2.svg",
       "drawing_body_index": 89,
       "caption_body_index": 90,
-      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1–P2 defines the baseline; P4–P3 and P4–P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31° and 5.71°, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
+      "caption": "Fig. S1. Analytical geometry of coordinate and angle changes. (A) P1\u2013P2 defines the baseline; P4\u2013P3 and P4\u2013P5 define alpha and beta. P4 lies on the baseline only for schematic simplicity. (B) A perpendicular displacement of one endpoint changes the direction of a segment whose original length is L. Here the displacement is 8 pixels and L is 40 or 80 pixels, giving arctan8/L, or 11.31\u00b0 and 5.71\u00b0, respectively. The ratio compares displacement with the original segment length; it is dimensionless, and the reported angle changes are in degrees. Solid segments denote the original configuration; dashed segments denote the displaced configuration. (C) Shared translation of all five landmarks preserves both angles. These analytical schematics explain geometric sensitivity; they are not clinical observations.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -209,7 +209,7 @@
       "source_member": "word/media/image3.png",
       "drawing_body_index": 91,
       "caption_body_index": 92,
-      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C–E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C–E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
+      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C\u2013E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C\u2013E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -221,7 +221,7 @@
       "source_member": "word/media/image4.svg",
       "drawing_body_index": 91,
       "caption_body_index": 92,
-      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C–E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C–E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
+      "caption": "Fig. S2. Rater annotations and prediction variability in one five-rater evaluation case, selected nearest the median localization error among 14 eligible images before visual review. (A) The five raters' landmark coordinates and the reference obtained by averaging each landmark's coordinates across raters. (B) The same reference and the mean landmark coordinates across 50 dropout predictions. The reference is not anatomical truth; segments join angle-defining landmarks. (C\u2013E) P4 offsets from the mean across dropout predictions (+). Panels show the average covariance predicted within each pass after centering the component means (C), covariance of the 50 predicted means across passes (denominator 50; D), and total covariance with 1,024 illustration-only mixture samples (E). All ellipses have Mahalanobis radius one, not confidence-interval coverage. Panels A and B share coordinate bounds; panels C\u2013E share offset bounds; all axes have equal pixel scales. These P4 distributions describe one landmark and do not validate the full joint distribution.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -233,7 +233,7 @@
       "source_member": "word/media/image5.png",
       "drawing_body_index": 93,
       "caption_body_index": 94,
-      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1–P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
+      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1\u2013P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -245,7 +245,7 @@
       "source_member": "word/media/image6.svg",
       "drawing_body_index": 93,
       "caption_body_index": 94,
-      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1–P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
+      "caption": "Fig. S3. Landmark localization and performance under substantial occlusion in 242 internal-evaluation images. (A) Clean-image radial error at P1\u2013P5, measured relative to the mean of the available rater coordinates. (B) Mean radial error under clean inputs and nominal 30% occlusion. The same stored inputs are used for both models; dropout is disabled and BatchNorm statistics are estimated from training images. Whiskers show image-bootstrap 95% CIs. Panel y-scales differ. Table S4 retains the blur and speckle results. The separate 3% hip-region protocol in main Fig. 3 uses a different placement rule; the 3% and 30% conditions do not form a controlled occlusion-intensity series.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -281,7 +281,7 @@
       "source_member": "word/media/ddh_image7.png",
       "drawing_body_index": 104,
       "caption_body_index": 105,
-      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B–F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
+      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B\u2013F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -293,7 +293,7 @@
       "source_member": "word/media/ddh_image8.svg",
       "drawing_body_index": 104,
       "caption_body_index": 105,
-      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B–F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
+      "caption": "Fig. 4. Stage 1 response to landmark displacement in one image. (A) The reference annotation from rater A. (B\u2013F) Predicted RMS coordinate standard deviation against input displacement, in model-grid pixels. Each panel contains 500 eligible input locations while the image and other four points remain fixed. Gray dots represent displaced inputs; diamonds mark the original inputs; black lines show least-squares fits. r denotes Pearson correlation. The inverse response at P1 is part of the observed landmark-specific behavior.",
       "content_type": "finished_manuscript_figure_composite_not_raw_data"
     },
     {
@@ -395,8 +395,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 4563,
-      "sha256": "61b2a0cda6d96afbd4ac5421b8b6eef479ecbbae514aadd74b241099f0009a8a"
+      "bytes": 4446,
+      "sha256": "fef89795a42e26fad3b77b7f62bf027dd41296bfb25d57849482195af22a5ccc"
     },
     {
       "path": "code/README.md",
@@ -500,13 +500,13 @@
     },
     {
       "path": "docs/extended_experiments.md",
-      "bytes": 63968,
-      "sha256": "0b382fc8e452c602238b6537258664279ba8cee611c9b3e828b873d075f86a6f"
+      "bytes": 63899,
+      "sha256": "1796e3152cbb162c8ae7fd38c728e424c959f06ead668a53a4973cc44fd86688"
     },
     {
       "path": "docs/provenance_notes.md",
-      "bytes": 2522,
-      "sha256": "89d7f0a109070c5493162a3838137ca18eb9f112975f598206ec0132d406e8e9"
+      "bytes": 2405,
+      "sha256": "8d69d942f3de53885ce2872916a61966aa5a03bce093cfb73132769e9698e32f"
     },
     {
       "path": "docs/references.md",
@@ -520,13 +520,13 @@
     },
     {
       "path": "docs/technical_note.pdf",
-      "bytes": 261216,
-      "sha256": "677a400718cc0e9ef1a6e06461a9074eb16ace06149e57679f727d473ad42aa1"
+      "bytes": 199221,
+      "sha256": "ba22aabe5c4fb26525f7a7ed43cb3cc4f3a5e648d9083c80886a6acf474f3f9c"
     },
     {
       "path": "docs/technical_note_review.json",
-      "bytes": 1728,
-      "sha256": "57c8e47cc9b40e1bda08b207993a8da6c246e4b477cf52ee170426d29e2e3421"
+      "bytes": 2518,
+      "sha256": "a85d268b59741c4be4ab8e99cc6434b8d8f8d2499d2e7601c0b1cbaa50842890"
     },
     {
       "path": "figures/figure_sources.json",
