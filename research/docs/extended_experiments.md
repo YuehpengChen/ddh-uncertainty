@@ -4,7 +4,7 @@
 
 **Unpublished author-review record.** The material below preserves the frozen supplementary Sections S1–S13 and S16–S17, including all aggregate tables and figure captions. The source numbering is retained for traceability. The package contains finished manuscript figure composites, not original research image files or per-image annotations.
 
-These records document existing experiments. They do not replace necessary methods or results in the main manuscript, establish external validation, or demonstrate clinical review benefit. The 100/142 rescaling analysis uses an internally evaluated cohort; the source author comments document its earlier model-selection use.
+These records document existing experiments. They do not replace necessary methods or results in the main manuscript, establish external validation, or demonstrate clinical review benefit. The 100/142 rescaling analysis uses an internally evaluated cohort.
 
 Figures with ultrasound panels are the already composed manuscript illustrations. Public redistribution rights and metadata must be reviewed before release. Research image access, trained-parameter access and software/data licensing remain separate author decisions.
 
